@@ -45,6 +45,20 @@ def get_gemini_api_key():
     # 3. Check environment variable (.env)
     return os.getenv("GEMINI_API_KEY", "")
 
+def get_openrouter_api_key():
+    """Get OpenRouter API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
+    # 1. Check session_state (UI input)
+    if "openrouter_api_key" in st.session_state and st.session_state.openrouter_api_key:
+        return st.session_state.openrouter_api_key
+    # 2. Check Streamlit Secrets (Cloud)
+    try:
+        if "OPENROUTER_API_KEY" in st.secrets:
+            return st.secrets["OPENROUTER_API_KEY"]
+    except:
+        pass
+    # 3. Check environment variable (.env)
+    return os.getenv("OPENROUTER_API_KEY", "")
+
 class GeminiConfig:
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
     MODEL = "gemini-2.0-flash"
@@ -54,7 +68,6 @@ class GeminiConfig:
         return get_gemini_api_key()
 
 class OpenRouterConfig:
-    API_KEY = os.getenv("OPENROUTER_API_KEY")
     BASE_URL = "https://openrouter.ai/api/v1"
     MODEL_LIST = [
         "google/gemini-2.0-flash-exp:free",
@@ -64,6 +77,10 @@ class OpenRouterConfig:
         "deepseek/deepseek-r1-0528:free",
         "qwen/qwen3-4b:free",
     ]
+    
+    @classmethod
+    def get_api_key(cls):
+        return get_openrouter_api_key()
 
 class HybridRAGConfig:
     if os.path.exists("d:/MAXY ACADEMY/Maxy-RAG"):
@@ -315,7 +332,7 @@ class OpenRouterLLM:
 class MultiLLM:
     def __init__(self):
         self.gemini = GeminiLLM(GeminiConfig.get_api_key())
-        self.openrouter = OpenRouterLLM(OpenRouterConfig.API_KEY)
+        self.openrouter = OpenRouterLLM(OpenRouterConfig.get_api_key())
     
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         print("[MultiLLM] Trying Gemini first...", flush=True)
@@ -683,24 +700,48 @@ def main():
     st.divider()
     
     # Check API Key - show input if not set
-    current_api_key = get_gemini_api_key()
-    if not current_api_key:
-        st.warning("⚠️ API Key belum diset. Masukkan Gemini API Key untuk mulai chat.")
+    gemini_key = get_gemini_api_key()
+    openrouter_key = get_openrouter_api_key()
+    
+    if not gemini_key and not openrouter_key:
+        st.warning("⚠️ API Key belum diset. Masukkan minimal satu API Key untuk mulai chat.")
         
         with st.form("api_key_form"):
-            api_key_input = st.text_input(
-                "🔑 Gemini API Key",
+            st.markdown("**🔑 Masukkan API Key:**")
+            
+            gemini_input = st.text_input(
+                "Gemini API Key",
                 type="password",
-                placeholder="AIzaSy..."
+                placeholder="AIzaSy...",
+                help="Dapatkan gratis di Google AI Studio"
             )
+            
+            openrouter_input = st.text_input(
+                "OpenRouter API Key (opsional)",
+                type="password",
+                placeholder="sk-or-v1-...",
+                help="Dapatkan gratis di openrouter.ai"
+            )
+            
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
-            if submit and api_key_input:
-                st.session_state.gemini_api_key = api_key_input
-                st.success("API Key tersimpan!")
-                st.rerun()
+            if submit:
+                if gemini_input:
+                    st.session_state.gemini_api_key = gemini_input
+                if openrouter_input:
+                    st.session_state.openrouter_api_key = openrouter_input
+                
+                if gemini_input or openrouter_input:
+                    st.success("API Key tersimpan!")
+                    st.rerun()
+                else:
+                    st.error("Masukkan minimal satu API Key!")
         
-        st.info("💡 Dapatkan API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey)")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.info("💡 [Dapatkan Gemini API Key](https://aistudio.google.com/app/apikey)")
+        with col2:
+            st.info("💡 [Dapatkan OpenRouter Key](https://openrouter.ai/keys)")
         st.stop()
     
     # Initialize messages
@@ -817,32 +858,51 @@ def main():
         
         # API Key Settings
         st.markdown("### ⚙️ Settings")
-        api_key_input = st.text_input(
+        
+        gemini_input = st.text_input(
             "Gemini API Key",
             value=st.session_state.get("gemini_api_key", ""),
             type="password",
-            help="Masukkan API Key dari Google AI Studio",
-            key="api_key_input_field"
+            help="API Key dari Google AI Studio",
+            key="gemini_key_input_field"
         )
-        if st.button("💾 Simpan API Key", width='stretch'):
-            st.session_state.gemini_api_key = api_key_input
+        
+        openrouter_input = st.text_input(
+            "OpenRouter API Key",
+            value=st.session_state.get("openrouter_api_key", ""),
+            type="password",
+            help="API Key dari OpenRouter",
+            key="openrouter_key_input_field"
+        )
+        
+        if st.button("💾 Simpan API Keys", use_container_width=True):
+            st.session_state.gemini_api_key = gemini_input
+            st.session_state.openrouter_api_key = openrouter_input
             # Clear cached RAG so it reloads with new key
             if "rag_loaded" in st.session_state:
                 del st.session_state.rag_loaded
             if "rag_system" in st.session_state:
                 del st.session_state.rag_system
-            st.success("API Key tersimpan! Reload sistem...")
+            st.success("API Keys tersimpan! Reload sistem...")
             st.rerun()
         
         # Show current API key status
-        current_key = get_gemini_api_key()
-        if current_key:
-            st.caption(f"✅ API Key aktif: ...{current_key[-8:]}")
+        st.markdown("**Status:**")
+        gemini_key = get_gemini_api_key()
+        openrouter_key = get_openrouter_api_key()
+        
+        if gemini_key:
+            st.caption(f"✅ Gemini: ...{gemini_key[-8:]}")
         else:
-            st.caption("⚠️ API Key belum diset")
+            st.caption("⚠️ Gemini: Belum diset")
+        
+        if openrouter_key:
+            st.caption(f"✅ OpenRouter: ...{openrouter_key[-8:]}")
+        else:
+            st.caption("⚠️ OpenRouter: Belum diset")
 
         st.divider()
-        st.caption("Powered by **Gemini AI**")
+        st.caption("Powered by **Gemini AI** & **OpenRouter**")
         st.caption("© 2026 Maxy Academy")
 
 if __name__ == "__main__":
