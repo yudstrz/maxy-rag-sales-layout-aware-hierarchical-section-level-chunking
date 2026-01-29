@@ -473,7 +473,7 @@ h1 {
 """, unsafe_allow_html=True)
 
 @st.cache_resource
-def load_rag_system(_progress_callback=None):
+def load_rag_system():
     """Load RAG system with progress tracking."""
     print("[RAG] Starting load_rag_system...", flush=True)
     
@@ -488,9 +488,8 @@ def load_rag_system(_progress_callback=None):
         config = HybridRAGConfig()
         print(f"[RAG] Config loaded. BASE_PATH={config.BASE_PATH}", flush=True)
         
-        # Step 1: Load Data (10%)
-        if _progress_callback:
-            _progress_callback(10, "📂 Memuat data bootcamp & curriculum...")
+        # Step 1: Load Data
+        print("[RAG] Loading data...", flush=True)
         
         chunker = LayoutAwareChunker(config)
         sections = chunker.process_all()
@@ -499,33 +498,28 @@ def load_rag_system(_progress_callback=None):
         if not sections:
             return None
         
-        # Step 2: Load Embedding Model (30%)
-        if _progress_callback:
-            _progress_callback(30, "🧠 Mengunduh model embedding (pertama kali bisa lama)...")
+        # Step 2: Load Embedding Model
+        print("[RAG] Loading embedding model...", flush=True)
         embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
         
-        # Step 3: Build BM25 Index (45%)
-        if _progress_callback:
-            _progress_callback(45, "🔍 Membangun BM25 search index...")
+        # Step 3: Build BM25 Index
+        print("[RAG] Building BM25 index...", flush=True)
         section_map = {s.section_id: s for s in sections}
         abstract_docs = [s.to_langchain_doc(use_abstract=True) for s in sections]
         abstract_bm25 = BM25Retriever.from_documents(abstract_docs)
         abstract_bm25.k = config.TOP_K_ABSTRACT_BM25
         
-        # Step 4: Build FAISS Vector Store (65%)
-        if _progress_callback:
-            _progress_callback(65, "📊 Membangun vector database (FAISS)...")
+        # Step 4: Build FAISS Vector Store
+        print("[RAG] Building FAISS vector store...", flush=True)
         full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
         vectorstore = FAISS.from_documents(full_docs, embeddings)
         
-        # Step 5: Load Reranker Model (85%)
-        if _progress_callback:
-            _progress_callback(85, "⚖️ Memuat reranker model...")
+        # Step 5: Load Reranker Model
+        print("[RAG] Loading reranker model...", flush=True)
         reranker = CrossEncoder(config.RERANKER_MODEL)
         
-        # Step 6: Initialize LLM (95%)
-        if _progress_callback:
-            _progress_callback(95, "🤖 Menginisialisasi Gemini AI...")
+        # Step 6: Initialize LLM
+        print("[RAG] Initializing LLM...", flush=True)
         llm = MultiLLM()
         
         # Create RAG object with pre-loaded components
@@ -540,14 +534,11 @@ def load_rag_system(_progress_callback=None):
             llm=llm
         )
         
-        if _progress_callback:
-            _progress_callback(100, "✅ Selesai!")
+        print("[RAG] System loaded successfully!", flush=True)
     
     except Exception as e:
         print(f"[ERROR] Failed to load RAG system: {str(e)}", flush=True)
         traceback.print_exc()
-        if _progress_callback:
-            _progress_callback(100, f"❌ Error: {str(e)}")
         return None
 
     return rag
@@ -675,16 +666,9 @@ def main():
         st.markdown("### 🔄 Mempersiapkan Kak Maxy...")
         st.markdown("*Mohon tunggu sebentar, sedang memuat sistem AI...*")
         
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        def update_progress(pct, msg):
-            print(f"[DEBUG] Progress: {pct}% - {msg}", flush=True)
-            progress_bar.progress(pct)
-            status_text.markdown(f"**{pct}%** - {msg}")
-        
-        # Load with progress
-        rag = load_rag_system(_progress_callback=update_progress)
+        # Load with spinner instead of progress bar
+        with st.spinner("Sedang memuat sistem AI (Model & Data)..."):
+            rag = load_rag_system()
         
         if rag is None:
             st.error("❌ Gagal memuat sistem AI. Silakan refresh halaman atau cek koneksi internet.")
@@ -692,10 +676,6 @@ def main():
             
         st.session_state.rag_system = rag
         st.session_state.rag_loaded = True
-        
-        # Clear loading UI
-        progress_bar.empty()
-        status_text.empty()
         st.rerun()
     
     # Display Messages
