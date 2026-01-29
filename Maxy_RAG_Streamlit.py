@@ -767,14 +767,15 @@ def main():
     # Check API Key - show input if not set
     gemini_key = get_gemini_api_key()
     openrouter_key = get_openrouter_api_key()
+    groq_key = get_groq_api_key()
     
-    if not gemini_key and not openrouter_key:
+    if not gemini_key and not openrouter_key and not groq_key:
         st.warning("⚠️ API Key belum diset. Pilih provider dan masukkan API Key untuk mulai chat.")
         
         # Provider selection with radio button
         provider = st.radio(
             "🤖 Pilih AI Provider:",
-            ["Gemini (Google)", "OpenRouter"],
+            ["Gemini (Google)", "Groq", "OpenRouter"],
             horizontal=True,
             help="Pilih salah satu provider AI yang ingin digunakan"
         )
@@ -789,6 +790,15 @@ def main():
                     help="Dapatkan gratis di Google AI Studio"
                 )
                 st.markdown("[📎 Dapatkan Gemini API Key di sini](https://aistudio.google.com/app/apikey)")
+            elif provider == "Groq":
+                st.markdown("**🔑 Masukkan Groq API Key:**")
+                api_key_input = st.text_input(
+                    "Groq API Key",
+                    type="password",
+                    placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx",
+                    help="Dapatkan gratis di console.groq.com"
+                )
+                st.markdown("[📎 Dapatkan Groq API Key di sini](https://console.groq.com/keys)")
             else:
                 st.markdown("**🔑 Masukkan OpenRouter API Key:**")
                 api_key_input = st.text_input(
@@ -799,26 +809,16 @@ def main():
                 )
                 st.markdown("[📎 Dapatkan OpenRouter API Key di sini](https://openrouter.ai/keys)")
             
-            st.divider()
-            
-            ngrok_input = st.text_input(
-                "🌐 Ngrok Auth Token (opsional)",
-                type="password",
-                placeholder="2abc123...",
-                help="Untuk tunneling, dapatkan di ngrok.com"
-            )
-            
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
                 if api_key_input:
                     if provider == "Gemini (Google)":
                         st.session_state.gemini_api_key = api_key_input
+                    elif provider == "Groq":
+                        st.session_state.groq_api_key = api_key_input
                     else:
                         st.session_state.openrouter_api_key = api_key_input
-                    
-                    if ngrok_input:
-                        st.session_state.ngrok_token = ngrok_input
                     
                     st.success("✅ API Key tersimpan!")
                     st.rerun()
