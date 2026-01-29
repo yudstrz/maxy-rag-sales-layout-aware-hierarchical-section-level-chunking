@@ -682,7 +682,28 @@ def main():
     
     st.divider()
     
-    # Initialize
+    # Check API Key - show input if not set
+    current_api_key = get_gemini_api_key()
+    if not current_api_key:
+        st.warning("⚠️ API Key belum diset. Masukkan Gemini API Key untuk mulai chat.")
+        
+        with st.form("api_key_form"):
+            api_key_input = st.text_input(
+                "🔑 Gemini API Key",
+                type="password",
+                placeholder="AIzaSy..."
+            )
+            submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
+            
+            if submit and api_key_input:
+                st.session_state.gemini_api_key = api_key_input
+                st.success("API Key tersimpan!")
+                st.rerun()
+        
+        st.info("💡 Dapatkan API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey)")
+        st.stop()
+    
+    # Initialize messages
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "assistant", "content": "Halo kak! 👋 Aku Kak Maxy, AI Consultant dari Maxy Academy.\n\nAda yang bisa aku bantu hari ini?"}
