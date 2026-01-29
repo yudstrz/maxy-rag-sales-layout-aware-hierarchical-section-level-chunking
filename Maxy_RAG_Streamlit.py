@@ -256,15 +256,19 @@ class GeminiLLM:
             "generationConfig": {"temperature": 0.7, "maxOutputTokens": 1024}
         }
         try:
+            print(f"[GEMINI] Calling API with model: {self.model}", flush=True)
             response = requests.post(url, json=payload, timeout=30)
+            print(f"[GEMINI] Response status: {response.status_code}", flush=True)
             response.raise_for_status()
             result = response.json()
             if 'candidates' in result and len(result['candidates']) > 0:
                 candidate = result['candidates'][0]
                 if 'content' in candidate and 'parts' in candidate['content']:
                     return candidate['content']['parts'][0].get('text', '')
+            print(f"[GEMINI] No candidates in response: {result}", flush=True)
             return None
-        except:
+        except Exception as e:
+            print(f"[GEMINI] Error: {str(e)}", flush=True)
             return None
 
 class OpenRouterLLM:
