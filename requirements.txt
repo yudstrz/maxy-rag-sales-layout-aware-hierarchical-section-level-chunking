@@ -1,0 +1,29 @@
+# Maxy Academy RAG System V3 - Dependencies
+# Install: pip install -r requirements.txt
+
+# Core
+python-dotenv>=1.0.0
+openai>=1.0.0
+requests>=2.31.0
+
+# LangChain Stack
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-huggingface>=0.0.3
+langchain-text-splitters>=0.2.0
+
+# Embeddings & Vector Store
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+rank-bm25>=0.2.2
+
+# Transformers
+transformers>=4.30.0
+
+# UI Options
+streamlit>=1.30.0
+gradio>=4.0.0
+
+# Tunnel (optional, for Gradio public URL)
+pyngrok>=7.0.0
+nest_asyncio>=1.5.0
