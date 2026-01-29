@@ -59,6 +59,20 @@ def get_openrouter_api_key():
     # 3. Check environment variable (.env)
     return os.getenv("OPENROUTER_API_KEY", "")
 
+def get_ngrok_token():
+    """Get Ngrok Auth Token from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
+    # 1. Check session_state (UI input)
+    if "ngrok_token" in st.session_state and st.session_state.ngrok_token:
+        return st.session_state.ngrok_token
+    # 2. Check Streamlit Secrets (Cloud)
+    try:
+        if "NGROK_AUTH_TOKEN" in st.secrets:
+            return st.secrets["NGROK_AUTH_TOKEN"]
+    except:
+        pass
+    # 3. Check environment variable (.env)
+    return os.getenv("NGROK_AUTH_TOKEN", "")
+
 class GeminiConfig:
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
     MODEL = "gemini-2.0-flash"
@@ -723,6 +737,13 @@ def main():
                 help="Dapatkan gratis di openrouter.ai"
             )
             
+            ngrok_input = st.text_input(
+                "Ngrok Auth Token (opsional)",
+                type="password",
+                placeholder="2abc123...",
+                help="Dapatkan gratis di ngrok.com/signup"
+            )
+            
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
@@ -730,6 +751,8 @@ def main():
                     st.session_state.gemini_api_key = gemini_input
                 if openrouter_input:
                     st.session_state.openrouter_api_key = openrouter_input
+                if ngrok_input:
+                    st.session_state.ngrok_token = ngrok_input
                 
                 if gemini_input or openrouter_input:
                     st.success("API Key tersimpan!")
@@ -737,11 +760,13 @@ def main():
                 else:
                     st.error("Masukkan minimal satu API Key!")
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.info("💡 [Dapatkan Gemini API Key](https://aistudio.google.com/app/apikey)")
+            st.info("💡 [Gemini API Key](https://aistudio.google.com/app/apikey)")
         with col2:
-            st.info("💡 [Dapatkan OpenRouter Key](https://openrouter.ai/keys)")
+            st.info("💡 [OpenRouter Key](https://openrouter.ai/keys)")
+        with col3:
+            st.info("💡 [Ngrok Token](https://dashboard.ngrok.com/get-started/your-authtoken)")
         st.stop()
     
     # Initialize messages
