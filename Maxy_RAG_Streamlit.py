@@ -663,12 +663,15 @@ def main():
         ]
     
     if "rag_loaded" not in st.session_state:
-        st.markdown("### 🔄 Mempersiapkan Kak Maxy...")
-        st.markdown("*Mohon tunggu sebentar, sedang memuat sistem AI...*")
+        # Show loading message (will disappear after rerun)
+        loading_placeholder = st.empty()
+        loading_placeholder.info("🔄 Mempersiapkan Kak Maxy... Mohon tunggu sebentar.")
         
-        # Load with spinner instead of progress bar
-        with st.spinner("Sedang memuat sistem AI (Model & Data)..."):
-            rag = load_rag_system()
+        # Load RAG system - NO UI wrappers around cached function!
+        rag = load_rag_system()
+        
+        # Clear loading message
+        loading_placeholder.empty()
         
         if rag is None:
             st.error("❌ Gagal memuat sistem AI. Silakan refresh halaman atau cek koneksi internet.")
