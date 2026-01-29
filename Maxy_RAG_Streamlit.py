@@ -31,7 +31,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class GeminiConfig:
-    API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCmkOBHnsE-YJe9jByqNpxbRQ8qhtnx1DA")
+    API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBi55vB-zhismRhNibC0iEjD4-5kUmkuoo")
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
     MODEL = "gemini-1.5-flash"
 
