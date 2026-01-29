@@ -718,16 +718,22 @@ def main():
     
     # Chat Input
     if prompt := st.chat_input("Ketik pertanyaan kamu..."):
-        # Show user message
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user", avatar="👤"):
-            st.markdown(prompt)
+        st.rerun()
+
+    # Generate Response Implementation (Triggered if last message is from user)
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        prompt = st.session_state.messages[-1]["content"]
         
-        # Generate response
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("Kak Maxy sedang berpikir... 💭"):
-                response = st.session_state.rag_system.query(prompt)
-                answer = response["answer"]
+                # Ensure RAG system is loaded
+                if "rag_system" not in st.session_state or st.session_state.rag_system is None:
+                     answer = "⚠️ Sistem AI belum siap. Silakan refresh halaman."
+                     response = {"answer": answer}
+                else:
+                     response = st.session_state.rag_system.query(prompt)
+                     answer = response["answer"]
             
             st.markdown(answer)
             
@@ -738,6 +744,9 @@ def main():
                         st.caption(f"• {src}")
         
         st.session_state.messages.append({"role": "assistant", "content": answer})
+        # Optional: Rerun to update the UI specifically if you want the "assistant" message 
+        # to be part of the main display loop next time, but it's already rendered above.
+        # No rerun needed here as it just finished rendering.
     
     # Sidebar
     with st.sidebar:
