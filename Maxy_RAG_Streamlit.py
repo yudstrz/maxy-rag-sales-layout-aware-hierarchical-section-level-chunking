@@ -31,15 +31,27 @@ from dataclasses import dataclass, field
 from dotenv import load_dotenv
 load_dotenv()
 
-class GeminiConfig:
-    # Prioritize Streamlit Secrets, then Environment Variable
-    if "GEMINI_API_KEY" in st.secrets:
-        API_KEY = st.secrets["GEMINI_API_KEY"]
-    else:
-        API_KEY = os.getenv("GEMINI_API_KEY", "")
+def get_gemini_api_key():
+    """Get Gemini API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
+    # 1. Check session_state (UI input)
+    if "gemini_api_key" in st.session_state and st.session_state.gemini_api_key:
+        return st.session_state.gemini_api_key
+    # 2. Check Streamlit Secrets (Cloud)
+    try:
+        if "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"]
+    except:
+        pass
+    # 3. Check environment variable (.env)
+    return os.getenv("GEMINI_API_KEY", "")
 
+class GeminiConfig:
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-    MODEL = "gemini-1.5-flash"
+    MODEL = "gemini-2.0-flash"
+    
+    @classmethod
+    def get_api_key(cls):
+        return get_gemini_api_key()
 
 class OpenRouterConfig:
     API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -302,7 +314,7 @@ class OpenRouterLLM:
 
 class MultiLLM:
     def __init__(self):
-        self.gemini = GeminiLLM(GeminiConfig.API_KEY)
+        self.gemini = GeminiLLM(GeminiConfig.get_api_key())
         self.openrouter = OpenRouterLLM(OpenRouterConfig.API_KEY)
     
     def generate(self, prompt: str, system_prompt: str = "") -> str:
@@ -780,6 +792,34 @@ def main():
             ]
             st.rerun()
         
+        st.divider()
+        
+        # API Key Settings
+        st.markdown("### ⚙️ Settings")
+        api_key_input = st.text_input(
+            "Gemini API Key",
+            value=st.session_state.get("gemini_api_key", ""),
+            type="password",
+            help="Masukkan API Key dari Google AI Studio",
+            key="api_key_input_field"
+        )
+        if st.button("💾 Simpan API Key", width='stretch'):
+            st.session_state.gemini_api_key = api_key_input
+            # Clear cached RAG so it reloads with new key
+            if "rag_loaded" in st.session_state:
+                del st.session_state.rag_loaded
+            if "rag_system" in st.session_state:
+                del st.session_state.rag_system
+            st.success("API Key tersimpan! Reload sistem...")
+            st.rerun()
+        
+        # Show current API key status
+        current_key = get_gemini_api_key()
+        if current_key:
+            st.caption(f"✅ API Key aktif: ...{current_key[-8:]}")
+        else:
+            st.caption("⚠️ API Key belum diset")
+
         st.divider()
         st.caption("Powered by **Gemini AI**")
         st.caption("© 2026 Maxy Academy")
