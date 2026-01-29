@@ -31,9 +31,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class GeminiConfig:
-    API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBi55vB-zhismRhNibC0iEjD4-5kUmkuoo")
+    # Prioritize Streamlit Secrets, then Environment Variable
+    if "GEMINI_API_KEY" in st.secrets:
+        API_KEY = st.secrets["GEMINI_API_KEY"]
+    else:
+        API_KEY = os.getenv("GEMINI_API_KEY", "")
+
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-    MODEL = "gemini-3.0-flash"
+    MODEL = "gemini-1.5-flash"
 
 class OpenRouterConfig:
     API_KEY = os.getenv("OPENROUTER_API_KEY")
