@@ -27,7 +27,7 @@ load_dotenv()
 class GeminiConfig:
     API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCmkOBHnsE-YJe9jByqNpxbRQ8qhtnx1DA")
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-    MODEL = "gemini-3.0-flash"
+    MODEL = "gemini-1.5-flash"
 
 class OpenRouterConfig:
     API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -476,56 +476,64 @@ def load_rag_system(_progress_callback=None):
     # Step 1: Load Data (10%)
     if _progress_callback:
         _progress_callback(10, "📂 Memuat data bootcamp & curriculum...")
-    chunker = LayoutAwareChunker(config)
-    sections = chunker.process_all()
     
-    if not sections:
+    try:
+        chunker = LayoutAwareChunker(config)
+        sections = chunker.process_all()
+    
+        if not sections:
+            return None
+        
+        # Step 2: Load Embedding Model (30%)
+        if _progress_callback:
+            _progress_callback(30, "🧠 Mengunduh model embedding (pertama kali bisa lama)...")
+        embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
+        
+        # Step 3: Build BM25 Index (45%)
+        if _progress_callback:
+            _progress_callback(45, "🔍 Membangun BM25 search index...")
+        section_map = {s.section_id: s for s in sections}
+        abstract_docs = [s.to_langchain_doc(use_abstract=True) for s in sections]
+        abstract_bm25 = BM25Retriever.from_documents(abstract_docs)
+        abstract_bm25.k = config.TOP_K_ABSTRACT_BM25
+        
+        # Step 4: Build FAISS Vector Store (65%)
+        if _progress_callback:
+            _progress_callback(65, "📊 Membangun vector database (FAISS)...")
+        full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
+        vectorstore = FAISS.from_documents(full_docs, embeddings)
+        
+        # Step 5: Load Reranker Model (85%)
+        if _progress_callback:
+            _progress_callback(85, "⚖️ Memuat reranker model...")
+        reranker = CrossEncoder(config.RERANKER_MODEL)
+        
+        # Step 6: Initialize LLM (95%)
+        if _progress_callback:
+            _progress_callback(95, "🤖 Menginisialisasi Gemini AI...")
+        llm = MultiLLM()
+        
+        # Create RAG object with pre-loaded components
+        rag = HybridRAGPreloaded(
+            config=config,
+            sections=sections,
+            section_map=section_map,
+            embeddings=embeddings,
+            abstract_bm25=abstract_bm25,
+            vectorstore=vectorstore,
+            reranker=reranker,
+            llm=llm
+        )
+        
+        if _progress_callback:
+            _progress_callback(100, "✅ Selesai!")
+    
+    except Exception as e:
+        print(f"[ERROR] Failed to load RAG system: {str(e)}")
+        if _progress_callback:
+            _progress_callback(100, f"❌ Error: {str(e)}")
         return None
-    
-    # Step 2: Load Embedding Model (30%)
-    if _progress_callback:
-        _progress_callback(30, "🧠 Mengunduh model embedding (pertama kali bisa lama)...")
-    embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
-    
-    # Step 3: Build BM25 Index (45%)
-    if _progress_callback:
-        _progress_callback(45, "🔍 Membangun BM25 search index...")
-    section_map = {s.section_id: s for s in sections}
-    abstract_docs = [s.to_langchain_doc(use_abstract=True) for s in sections]
-    abstract_bm25 = BM25Retriever.from_documents(abstract_docs)
-    abstract_bm25.k = config.TOP_K_ABSTRACT_BM25
-    
-    # Step 4: Build FAISS Vector Store (65%)
-    if _progress_callback:
-        _progress_callback(65, "📊 Membangun vector database (FAISS)...")
-    full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
-    vectorstore = FAISS.from_documents(full_docs, embeddings)
-    
-    # Step 5: Load Reranker Model (85%)
-    if _progress_callback:
-        _progress_callback(85, "⚖️ Memuat reranker model...")
-    reranker = CrossEncoder(config.RERANKER_MODEL)
-    
-    # Step 6: Initialize LLM (95%)
-    if _progress_callback:
-        _progress_callback(95, "🤖 Menginisialisasi Gemini AI...")
-    llm = MultiLLM()
-    
-    # Create RAG object with pre-loaded components
-    rag = HybridRAGPreloaded(
-        config=config,
-        sections=sections,
-        section_map=section_map,
-        embeddings=embeddings,
-        abstract_bm25=abstract_bm25,
-        vectorstore=vectorstore,
-        reranker=reranker,
-        llm=llm
-    )
-    
-    if _progress_callback:
-        _progress_callback(100, "✅ Selesai!")
-    
+
     return rag
 
 class HybridRAGPreloaded:
@@ -660,7 +668,13 @@ def main():
             status_text.markdown(f"**{pct}%** - {msg}")
         
         # Load with progress
-        st.session_state.rag_system = load_rag_system(_progress_callback=update_progress)
+        rag = load_rag_system(_progress_callback=update_progress)
+        
+        if rag is None:
+            st.error("❌ Gagal memuat sistem AI. Silakan refresh halaman atau cek koneksi internet.")
+            st.stop()
+            
+        st.session_state.rag_system = rag
         st.session_state.rag_loaded = True
         
         # Clear loading UI
