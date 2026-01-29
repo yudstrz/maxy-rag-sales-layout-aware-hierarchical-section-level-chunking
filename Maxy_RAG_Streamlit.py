@@ -60,7 +60,8 @@ class HybridRAGConfig:
     COMPANY_INFO = os.path.join(BASE_PATH, "MAXY_Company_Info.jsonl")
 
     EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
+    # Use smaller reranker for Streamlit Cloud (bge-reranker-v2-m3 is too large ~560MB)
+    RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # ~80MB, much faster
 
     TOP_K_ABSTRACT_BM25 = 30
     TOP_K_DENSE = 15
