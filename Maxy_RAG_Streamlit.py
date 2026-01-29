@@ -698,7 +698,7 @@ def main():
         ]
         for i, q in enumerate(quick_qs):
             with cols[i % 2]:
-                if st.button(q, key=f"quick_{i}", use_container_width=True):
+                if st.button(q, key=f"quick_{i}", width='stretch'):
                     st.session_state.messages.append({"role": "user", "content": q})
                     st.rerun()
     
@@ -727,7 +727,7 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.image("https://via.placeholder.com/150x50/E67E22/FFFFFF?text=MAXY", use_container_width=True)
+        st.image("https://via.placeholder.com/150x50/E67E22/FFFFFF?text=MAXY", width='stretch')
         st.markdown("### 🎯 Contoh Pertanyaan")
         
         examples = [
@@ -746,7 +746,7 @@ def main():
         
         st.divider()
         
-        if st.button("🗑️ Hapus Chat", use_container_width=True):
+        if st.button("🗑️ Hapus Chat", width='stretch'):
             st.session_state.messages = [
                 {"role": "assistant", "content": "Halo kak! 👋 Aku Kak Maxy, AI Consultant dari Maxy Academy.\n\nAda yang bisa aku bantu hari ini?"}
             ]
