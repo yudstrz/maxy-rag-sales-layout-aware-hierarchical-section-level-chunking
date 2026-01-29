@@ -718,55 +718,62 @@ def main():
     openrouter_key = get_openrouter_api_key()
     
     if not gemini_key and not openrouter_key:
-        st.warning("⚠️ API Key belum diset. Masukkan minimal satu API Key untuk mulai chat.")
+        st.warning("⚠️ API Key belum diset. Pilih provider dan masukkan API Key untuk mulai chat.")
+        
+        # Provider selection with radio button
+        provider = st.radio(
+            "🤖 Pilih AI Provider:",
+            ["Gemini (Google)", "OpenRouter"],
+            horizontal=True,
+            help="Pilih salah satu provider AI yang ingin digunakan"
+        )
         
         with st.form("api_key_form"):
-            st.markdown("**🔑 Masukkan API Key:**")
+            if provider == "Gemini (Google)":
+                st.markdown("**🔑 Masukkan Gemini API Key:**")
+                api_key_input = st.text_input(
+                    "Gemini API Key",
+                    type="password",
+                    placeholder="AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxx",
+                    help="Dapatkan gratis di Google AI Studio"
+                )
+                st.markdown("[📎 Dapatkan Gemini API Key di sini](https://aistudio.google.com/app/apikey)")
+            else:
+                st.markdown("**🔑 Masukkan OpenRouter API Key:**")
+                api_key_input = st.text_input(
+                    "OpenRouter API Key",
+                    type="password",
+                    placeholder="sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx",
+                    help="Dapatkan gratis di openrouter.ai"
+                )
+                st.markdown("[📎 Dapatkan OpenRouter API Key di sini](https://openrouter.ai/keys)")
             
-            gemini_input = st.text_input(
-                "Gemini API Key",
-                type="password",
-                placeholder="AIzaSy...",
-                help="Dapatkan gratis di Google AI Studio"
-            )
-            
-            openrouter_input = st.text_input(
-                "OpenRouter API Key (opsional)",
-                type="password",
-                placeholder="sk-or-v1-...",
-                help="Dapatkan gratis di openrouter.ai"
-            )
+            st.divider()
             
             ngrok_input = st.text_input(
-                "Ngrok Auth Token (opsional)",
+                "🌐 Ngrok Auth Token (opsional)",
                 type="password",
                 placeholder="2abc123...",
-                help="Dapatkan gratis di ngrok.com/signup"
+                help="Untuk tunneling, dapatkan di ngrok.com"
             )
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
-                if gemini_input:
-                    st.session_state.gemini_api_key = gemini_input
-                if openrouter_input:
-                    st.session_state.openrouter_api_key = openrouter_input
-                if ngrok_input:
-                    st.session_state.ngrok_token = ngrok_input
-                
-                if gemini_input or openrouter_input:
-                    st.success("API Key tersimpan!")
+                if api_key_input:
+                    if provider == "Gemini (Google)":
+                        st.session_state.gemini_api_key = api_key_input
+                    else:
+                        st.session_state.openrouter_api_key = api_key_input
+                    
+                    if ngrok_input:
+                        st.session_state.ngrok_token = ngrok_input
+                    
+                    st.success("✅ API Key tersimpan!")
                     st.rerun()
                 else:
-                    st.error("Masukkan minimal satu API Key!")
+                    st.error(f"❌ Masukkan {provider} API Key!")
         
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.info("💡 [Gemini API Key](https://aistudio.google.com/app/apikey)")
-        with col2:
-            st.info("💡 [OpenRouter Key](https://openrouter.ai/keys)")
-        with col3:
-            st.info("💡 [Ngrok Token](https://dashboard.ngrok.com/get-started/your-authtoken)")
         st.stop()
     
     # Initialize messages
