@@ -672,19 +672,24 @@ def main():
         ]
     
     if "rag_loaded" not in st.session_state:
-        # Show loading message (will disappear after rerun)
-        loading_placeholder = st.empty()
-        loading_placeholder.info("🔄 Mempersiapkan Kak Maxy... Mohon tunggu sebentar.")
-        
-        # Load RAG system - NO UI wrappers around cached function!
-        rag = load_rag_system()
-        
-        # Clear loading message
-        loading_placeholder.empty()
-        
-        if rag is None:
-            st.error("❌ Gagal memuat sistem AI. Silakan refresh halaman atau cek koneksi internet.")
-            st.stop()
+        # Show detailed loading progress using st.status
+        with st.status("🔄 Mempersiapkan Kak Maxy...", expanded=True) as status:
+            st.write("📂 Memuat data bootcamp & curriculum...")
+            st.write("🧠 Mengunduh model embedding (pertama kali bisa lama ~500MB)...")
+            st.write("🔍 Membangun BM25 search index...")
+            st.write("📊 Membangun vector database (FAISS)...")
+            st.write("⚖️ Memuat reranker model (~80MB)...")
+            st.write("🤖 Menginisialisasi Gemini AI...")
+            
+            # Actually load the RAG system
+            rag = load_rag_system()
+            
+            if rag is None:
+                status.update(label="❌ Gagal memuat sistem AI", state="error", expanded=True)
+                st.error("Silakan refresh halaman atau cek koneksi internet.")
+                st.stop()
+            
+            status.update(label="✅ Kak Maxy siap!", state="complete", expanded=False)
             
         st.session_state.rag_system = rag
         st.session_state.rag_loaded = True
