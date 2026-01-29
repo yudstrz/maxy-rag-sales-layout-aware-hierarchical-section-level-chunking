@@ -300,12 +300,17 @@ class MultiLLM:
         self.openrouter = OpenRouterLLM(OpenRouterConfig.API_KEY)
     
     def generate(self, prompt: str, system_prompt: str = "") -> str:
+        print("[MultiLLM] Trying Gemini first...", flush=True)
         response = self.gemini.generate(prompt, system_prompt)
         if response:
+            print("[MultiLLM] Gemini succeeded!", flush=True)
             return response
+        print("[MultiLLM] Gemini failed, trying OpenRouter...", flush=True)
         response = self.openrouter.generate(prompt, system_prompt)
         if response:
+            print("[MultiLLM] OpenRouter succeeded!", flush=True)
             return response
+        print("[MultiLLM] All providers failed!", flush=True)
         return "Mohon maaf, semua server AI sedang sibuk. Silakan coba lagi."
 
 # ==========================================
