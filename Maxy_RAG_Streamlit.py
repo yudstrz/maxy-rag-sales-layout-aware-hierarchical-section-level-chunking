@@ -59,19 +59,19 @@ def get_openrouter_api_key():
     # 3. Check environment variable (.env)
     return os.getenv("OPENROUTER_API_KEY", "")
 
-def get_ngrok_token():
-    """Get Ngrok Auth Token from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
+def get_groq_api_key():
+    """Get Groq API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
     # 1. Check session_state (UI input)
-    if "ngrok_token" in st.session_state and st.session_state.ngrok_token:
-        return st.session_state.ngrok_token
+    if "groq_api_key" in st.session_state and st.session_state.groq_api_key:
+        return st.session_state.groq_api_key
     # 2. Check Streamlit Secrets (Cloud)
     try:
-        if "NGROK_AUTH_TOKEN" in st.secrets:
-            return st.secrets["NGROK_AUTH_TOKEN"]
+        if "GROQ_API_KEY" in st.secrets:
+            return st.secrets["GROQ_API_KEY"]
     except:
         pass
     # 3. Check environment variable (.env)
-    return os.getenv("NGROK_AUTH_TOKEN", "")
+    return os.getenv("GROQ_API_KEY", "")
 
 class GeminiConfig:
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
@@ -95,6 +95,19 @@ class OpenRouterConfig:
     @classmethod
     def get_api_key(cls):
         return get_openrouter_api_key()
+
+class GroqConfig:
+    BASE_URL = "https://api.groq.com/openai/v1"
+    MODEL_LIST = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "gemma2-9b-it",
+        "mixtral-8x7b-32768",
+    ]
+    
+    @classmethod
+    def get_api_key(cls):
+        return get_groq_api_key()
 
 class HybridRAGConfig:
     if os.path.exists("d:/MAXY ACADEMY/Maxy-RAG"):
@@ -343,22 +356,60 @@ class OpenRouterLLM:
                 continue
         return None
 
+class GroqLLM:
+    def __init__(self, api_key: str):
+        self.client = None
+        if api_key:
+            self.client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
+        self.models = GroqConfig.MODEL_LIST
+
+    def generate(self, prompt: str, system_prompt: str = "") -> Optional[str]:
+        if not self.client:
+            return None
+        for model in self.models:
+            try:
+                print(f"[GROQ] Trying model: {model}", flush=True)
+                completion = self.client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+                    temperature=0.7,
+                    max_tokens=500,
+                )
+                print(f"[GROQ] Success with model: {model}", flush=True)
+                return completion.choices[0].message.content
+            except Exception as e:
+                print(f"[GROQ] Error with {model}: {str(e)}", flush=True)
+                continue
+        return None
+
 class MultiLLM:
     def __init__(self):
         self.gemini = GeminiLLM(GeminiConfig.get_api_key())
         self.openrouter = OpenRouterLLM(OpenRouterConfig.get_api_key())
+        self.groq = GroqLLM(GroqConfig.get_api_key())
     
     def generate(self, prompt: str, system_prompt: str = "") -> str:
+        # Try Gemini first
         print("[MultiLLM] Trying Gemini first...", flush=True)
         response = self.gemini.generate(prompt, system_prompt)
         if response:
             print("[MultiLLM] Gemini succeeded!", flush=True)
             return response
-        print("[MultiLLM] Gemini failed, trying OpenRouter...", flush=True)
+        
+        # Try Groq second (faster inference)
+        print("[MultiLLM] Gemini failed, trying Groq...", flush=True)
+        response = self.groq.generate(prompt, system_prompt)
+        if response:
+            print("[MultiLLM] Groq succeeded!", flush=True)
+            return response
+        
+        # Try OpenRouter last
+        print("[MultiLLM] Groq failed, trying OpenRouter...", flush=True)
         response = self.openrouter.generate(prompt, system_prompt)
         if response:
             print("[MultiLLM] OpenRouter succeeded!", flush=True)
             return response
+        
         print("[MultiLLM] All providers failed!", flush=True)
         return "Mohon maaf, semua server AI sedang sibuk. Silakan coba lagi."
 
