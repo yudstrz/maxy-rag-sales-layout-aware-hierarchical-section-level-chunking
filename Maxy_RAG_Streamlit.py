@@ -11,12 +11,18 @@ import time
 import json
 import hashlib
 import warnings
+import traceback
+
+# Suppress warnings early
+warnings.filterwarnings("ignore")
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+print("[STARTUP] Importing core libraries...", flush=True)
+
 import requests
 import openai
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
-
-warnings.filterwarnings("ignore")
 
 # ==========================================
 # Configuration
@@ -300,7 +306,9 @@ class MultiLLM:
 # ==========================================
 # Streamlit UI - Native Components
 # ==========================================
+print("[STARTUP] Importing Streamlit...", flush=True)
 import streamlit as st
+print("[STARTUP] Streamlit imported successfully!", flush=True)
 
 # Page Config
 st.set_page_config(
@@ -466,20 +474,26 @@ h1 {
 @st.cache_resource
 def load_rag_system(_progress_callback=None):
     """Load RAG system with progress tracking."""
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from langchain_community.vectorstores import FAISS
-    from langchain_community.retrievers import BM25Retriever
-    from sentence_transformers import CrossEncoder
-    
-    config = HybridRAGConfig()
-    
-    # Step 1: Load Data (10%)
-    if _progress_callback:
-        _progress_callback(10, "📂 Memuat data bootcamp & curriculum...")
+    print("[RAG] Starting load_rag_system...", flush=True)
     
     try:
+        print("[RAG] Importing LangChain components...", flush=True)
+        from langchain_huggingface import HuggingFaceEmbeddings
+        from langchain_community.vectorstores import FAISS
+        from langchain_community.retrievers import BM25Retriever
+        from sentence_transformers import CrossEncoder
+        print("[RAG] LangChain imports successful!", flush=True)
+        
+        config = HybridRAGConfig()
+        print(f"[RAG] Config loaded. BASE_PATH={config.BASE_PATH}", flush=True)
+        
+        # Step 1: Load Data (10%)
+        if _progress_callback:
+            _progress_callback(10, "📂 Memuat data bootcamp & curriculum...")
+        
         chunker = LayoutAwareChunker(config)
         sections = chunker.process_all()
+        print(f"[RAG] Loaded {len(sections)} sections", flush=True)
     
         if not sections:
             return None
@@ -529,7 +543,8 @@ def load_rag_system(_progress_callback=None):
             _progress_callback(100, "✅ Selesai!")
     
     except Exception as e:
-        print(f"[ERROR] Failed to load RAG system: {str(e)}")
+        print(f"[ERROR] Failed to load RAG system: {str(e)}", flush=True)
+        traceback.print_exc()
         if _progress_callback:
             _progress_callback(100, f"❌ Error: {str(e)}")
         return None
