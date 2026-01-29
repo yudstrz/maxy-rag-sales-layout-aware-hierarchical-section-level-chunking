@@ -33,7 +33,7 @@ load_dotenv()
 class GeminiConfig:
     API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBi55vB-zhismRhNibC0iEjD4-5kUmkuoo")
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-    MODEL = "gemini-1.5-flash"
+    MODEL = "gemini-3.0-flash"
 
 class OpenRouterConfig:
     API_KEY = os.getenv("OPENROUTER_API_KEY")
