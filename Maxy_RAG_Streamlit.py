@@ -655,6 +655,7 @@ def main():
         status_text = st.empty()
         
         def update_progress(pct, msg):
+            print(f"[DEBUG] Progress: {pct}% - {msg}", flush=True)
             progress_bar.progress(pct)
             status_text.markdown(f"**{pct}%** - {msg}")
         
