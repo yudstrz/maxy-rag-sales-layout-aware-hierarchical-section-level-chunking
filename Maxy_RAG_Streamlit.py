@@ -21,6 +21,7 @@ print("[STARTUP] Importing core libraries...", flush=True)
 
 import requests
 import openai
+import streamlit as st
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 
@@ -321,9 +322,8 @@ class MultiLLM:
 # ==========================================
 # Streamlit UI - Native Components
 # ==========================================
-print("[STARTUP] Importing Streamlit...", flush=True)
-import streamlit as st
-print("[STARTUP] Streamlit imported successfully!", flush=True)
+# Streamlit UI - Native Components
+# ==========================================
 
 # Page Config
 st.set_page_config(
