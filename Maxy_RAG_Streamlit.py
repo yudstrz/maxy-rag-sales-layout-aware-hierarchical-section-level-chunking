@@ -303,6 +303,7 @@ st.set_page_config(
 # Custom CSS - Compatible with Streamlit
 # Custom CSS - Premium & Responsive
 st.markdown("""
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 /* GLOBAL THEME OVERRIDES */
