@@ -303,160 +303,133 @@ st.set_page_config(
 # Custom CSS - Compatible with Streamlit
 # Custom CSS - Premium & Responsive
 st.markdown("""
-<style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
-/* GLOBAL THEME OVERRIDES */
+/* --- GLOBAL THEME --- */
 .stApp {
     font-family: 'Outfit', sans-serif !important;
-    background-color: #f8fafc !important; /* Force nice light grey/white background */
+    background-color: #f8fafc !important;
     color: #334155 !important;
 }
 
-/* TYPOGRAPHY */
-h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, p, div, span, label, li {
+/* --- TYPOGRAPHY --- */
+h1, h2, h3, h4, h5, h6, p, div, span, label, li {
     font-family: 'Outfit', sans-serif !important;
-    color: #334155; /* Default text color - Dark Slate */
+    color: #334155 !important;
 }
 
 h1, h2, h3 {
     font-weight: 700 !important;
-    color: #1e293b !important; /* Darker headers */
+    color: #1e293b !important;
 }
 
-/* HIDE STREAMLIT CHROME (Footer etc) */
-#MainMenu, header, footer {
-    visibility: hidden;
+/* --- STICKY BOTTOM (Fixes Dark Footer) --- */
+/* Target the bottom container where chat input lives */
+[data-testid="stBottom"] {
+    background-color: #f8fafc !important;
+    border-top: 1px solid #e2e8f0;
+    padding-bottom: 2rem !important;
 }
 
-/* CHAT MESSAGES */
-.stChatMessage {
-    background: transparent !important;
-}
-
-/* ASSISTANT BUBBLE (White Card) */
-[data-testid="stChatMessageContent"] {
-    background-color: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px 12px 12px 12px !important;
-    color: #334155 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-    padding: 1.5rem !important;
-}
-
-/* USER BUBBLE (Orange Gradient) */
-[data-testid="stChatMessageContent"][class*="user"] {
-    background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
-    border: none !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2) !important;
-}
-
-/* Fix text inside User Bubble */
-[data-testid="stChatMessageContent"][class*="user"] p,
-[data-testid="stChatMessageContent"][class*="user"] div,
-[data-testid="stChatMessageContent"][class*="user"] span {
-    color: white !important;
-}
-
-/* Links */
-a {
-    color: #FF6B00 !important;
-    text-decoration: none;
-    font-weight: 500;
-}
-a:hover {
-    text-decoration: underline;
-}
-
-/* CHAT INPUT - NATIVE STREAMLIT STYLING (No Floating Hacks) */
-/* We target the container of the input to ensure it fits the theme */
+/* --- CHAT INPUT --- */
 .stChatInput {
-    padding-bottom: 20px !important;
-    background: transparent !important;
+    background-color: transparent !important;
 }
 
-/* The actual text box container */
-.stChatInput > div > div {
-    border-radius: 25px !important;
-    border: 1px solid #cbd5e1 !important;
+/* The actual input box */
+.stChatInput textarea {
     background-color: white !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 20px !important;
 }
 
 /* Focus state */
-.stChatInput > div > div:focus-within {
+.stChatInput textarea:focus {
     border-color: #FF6B00 !important;
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2) !important;
 }
 
-/* Input text */
-.stChatInput textarea {
+/* --- CHAT MESSAGES --- */
+.stChatMessage {
+    background-color: transparent !important;
+}
+
+/* Bot Message (White Card) */
+[data-testid="stChatMessageContent"] {
+    background-color: white !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px !important;
     color: #334155 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* BUTTONS */
-/* Primary Action (Orange) */
-button[kind="primary"] {
+/* User Message (Orange) */
+[data-testid="stChatMessageContent"][class*="user"] {
     background: #FF6B00 !important;
+    background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Fix text inside User Bubble */
+[data-testid="stChatMessageContent"][class*="user"] * {
+    color: white !important;
+}
+
+/* --- BUTTONS --- */
+/* Primary (Orange) */
+button[kind="primary"] {
+    background-color: #FF6B00 !important;
     color: white !important;
     border: none !important;
     border-radius: 8px !important;
-    transition: all 0.2s;
 }
-button[kind="primary"] p {
+button[kind="primary"] * {
     color: white !important;
 }
 button[kind="primary"]:hover {
-    background: #e65100 !important;
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2) !important;
-    transform: translateY(-1px);
+    background-color: #e65100 !important;
 }
 
-/* Secondary Action (Standard) */
+/* Secondary (White) */
 .stButton > button {
-    border-radius: 8px !important;
+    background-color: white !important;
+    color: #334155 !important;
     border: 1px solid #e2e8f0 !important;
-    background: white !important;
-    color: #475569 !important;
-}
-.stButton > button p {
-    color: #475569 !important;
+    border-radius: 8px !important;
 }
 .stButton > button:hover {
     border-color: #FF6B00 !important;
     color: #FF6B00 !important;
-    background-color: #fff7ed !important;
-}
-.stButton > button:hover p {
-    color: #FF6B00 !important;
 }
 
-/* SIDEBAR */
-section[data-testid="stSidebar"] {
-    background-color: white !important;
-    border-right: 1px solid #f1f5f9;
-}
-
-/* EXPANDER (References) */
+/* --- EXPANDER (Clean Default) --- */
+/* Just colors, no layout hacks */
 .streamlit-expanderHeader {
     background-color: white !important;
-    border-radius: 8px !important;
     color: #334155 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
 }
 .streamlit-expanderContent {
     background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-top: none !important;
     border-radius: 0 0 8px 8px !important;
-    color: #475569 !important;
 }
 
-/* MOBILE ADJUSTMENTS */
+/* --- HIDE ELEMENTS --- */
+#MainMenu, header, footer {
+    visibility: hidden;
+}
+
+/* --- MOBILE --- */
 @media (max-width: 768px) {
     .stApp {
-        padding-top: 20px;
+        padding-top: 10px;
     }
 }
-</style>
 """, unsafe_allow_html=True)
 
 @st.cache_resource
