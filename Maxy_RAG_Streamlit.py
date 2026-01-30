@@ -301,154 +301,168 @@ st.set_page_config(
 )
 
 # Custom CSS - Compatible with Streamlit
+# Custom CSS - Premium & Responsive
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
-/* Main App */
+/* Main App & Background */
 .stApp {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif !important;
+    background-color: #f8fafc;
 }
 
 /* Hide Streamlit Elements */
 #MainMenu, footer, header {visibility: hidden;}
 
-/* Chat Input Styling */
+/* Typography */
+h1, h2, h3 {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+/* Chat Input Styling - Floating Capsule */
+.stChatInput {
+    position: fixed;
+    bottom: 30px;
+    z-index: 1000;
+}
+
 .stChatInput > div {
-    border-radius: 25px !important;
-    border: 2px solid #E67E22 !important;
+    border-radius: 30px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+.stChatInput > div:focus-within {
+    border-color: #FF6B00 !important;
+    box-shadow: 0 4px 25px rgba(255, 107, 0, 0.15) !important;
 }
 
 .stChatInput textarea {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 16px !important;
 }
 
 /* Chat Message Styling */
 .stChatMessage {
     background: transparent !important;
     border: none !important;
+    padding: 1rem 0 !important;
 }
 
 /* Assistant Message Bubble */
 [data-testid="stChatMessageContent"] {
-    background: #ffffff !important; /* Force white background for assistant */
-    color: #2c3e50 !important; /* Force dark text for assistant */
-    border-radius: 18px !important;
-    padding: 12px 16px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-    border: 1px solid #e0e0e0 !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border-radius: 0px 20px 20px 20px !important;
+    padding: 20px 24px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03) !important;
+    border-left: 4px solid #FF6B00 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
 }
 
 /* User Message Bubble */
 [data-testid="stChatMessageContent"][class*="user"] {
-    background: linear-gradient(135deg, #3498DB, #2980B9) !important;
+    background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
     color: white !important;
+    border-radius: 20px 20px 0px 20px !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.2) !important;
     border: none !important;
+    border-left: none !important;
 }
 
-/* Make sure text inside bubbles is readable */
-[data-testid="stChatMessageContent"] p, 
-[data-testid="stChatMessageContent"] div {
-    color: inherit !important;
+/* Links in messages */
+[data-testid="stChatMessageContent"] a {
+    color: #FF6B00 !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+}
+[data-testid="stChatMessageContent"][class*="user"] a {
+    color: white !important;
+    text-decoration: underline !important;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #f8f9fa !important;
+    background-color: #ffffff !important;
+    border-right: 1px solid #f1f5f9;
 }
 
-/* Fix sidebar text color in dark mode */
-section[data-testid="stSidebar"] p, 
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] h1,
-section[data-testid="stSidebar"] h2,
+/* Sidebar Elements */
 section[data-testid="stSidebar"] h3 {
-    color: #2c3e50 !important;
+    color: #334155 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-top: 20px !important;
 }
 
-section[data-testid="stSidebar"] .stButton > button {
-    width: 100%;
-    border-radius: 12px;
-    border: 1.5px solid #e0e0e0;
-    background: white !important;
-    color: #2c3e50 !important;
-    font-weight: 500;
-    padding: 10px 16px;
-    margin-bottom: 8px;
-    transition: all 0.2s;
-    text-align: left;
-}
-
-section[data-testid="stSidebar"] .stButton > button:hover {
-    background: #E67E22 !important;
-    color: white !important;
-    border-color: #E67E22 !important;
-    transform: translateX(4px);
-}
-
-/* Expander - Fix for Dark Mode */
-.streamlit-expanderHeader {
-    background: #ffffff !important;
-    color: #2c3e50 !important;
-    border-radius: 10px !important;
-    border: 1px solid #e0e0e0 !important;
-}
-
-.streamlit-expanderContent {
-    background: #ffffff !important;
-    color: #2c3e50 !important;
-    border-radius: 0 0 10px 10px !important;
-    border-top: none !important;
-}
-
-/* Title styling */
-h1 {
-    background: linear-gradient(135deg, #E67E22, #D35400);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Quick buttons in main area */
+/* Buttons */
 .stButton > button {
-    border-radius: 20px;
-    border: 1.5px solid #3498DB;
-    background: transparent;
-    color: #3498DB;
-    font-weight: 500;
-    transition: all 0.2s;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+    color: #475569 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease !important;
 }
 
 .stButton > button:hover {
-    background: #3498DB;
-    color: white;
+    border-color: #FF6B00 !important;
+    color: #FF6B00 !important;
+    background: #fff7ed !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.1);
 }
 
-/* Status badge */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #e8f5e9;
-    color: #2e7d32;
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #c8e6c9;
+/* Status Badge Animation */
+@keyframes pulse-orange {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 107, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); }
 }
 
 .status-dot {
-    width: 8px;
-    height: 8px;
-    background: #2e7d32;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
     border-radius: 50%;
-    animation: pulse 2s infinite;
+    display: inline-block;
+    margin-right: 6px;
+    box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
+    animation: pulse-green 2s infinite;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .stChatInput {
+        bottom: 0px !important;
+        padding-bottom: 20px !important;
+        background: white !important; /* solid back to hide content behind */
+        border-top: 1px solid #f1f5f9;
+        left: 0;
+        right: 0;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    [data-testid="stChatMessageContent"] {
+        padding: 16px !important;
+        font-size: 14px !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -723,10 +737,19 @@ def main():
         
         st.stop()
     
-    # Initialize messages
+    # Initialize messages with a rich welcome
     if "messages" not in st.session_state:
         st.session_state.messages = [
-            {"role": "assistant", "content": "Halo kak! 👋 Aku Kak Maxy, AI Consultant dari Maxy Academy.\n\nAda yang bisa aku bantu hari ini?"}
+            {"role": "assistant", "content": """**Halo kak! 👋 Selamat datang di Maxy Academy AI Assistant!**
+
+Aku **Kak Maxy**, siap bantu kakak menemukan program karir impian atau jawab pertanyaan seputar Maxy Academy. 🚀
+
+Kakak bisa tanya apa saja, misalnya:
+- "Apa itu program Fast Track?"
+- "Ada bootcamp Data Science ga?"
+- "Cara daftar magang gimana kak?"
+
+Yuk, mau tanya apa hari ini? 😊"""}
         ]
     
     if "rag_loaded" not in st.session_state:
@@ -829,7 +852,16 @@ def main():
         
         if st.button("🗑️ Hapus Chat", width='stretch'):
             st.session_state.messages = [
-                {"role": "assistant", "content": "Halo kak! 👋 Aku Kak Maxy, AI Consultant dari Maxy Academy.\n\nAda yang bisa aku bantu hari ini?"}
+                {"role": "assistant", "content": """**Halo kak! 👋 Selamat datang di Maxy Academy AI Assistant!**
+
+Aku **Kak Maxy**, siap bantu kakak menemukan program karir impian atau jawab pertanyaan seputar Maxy Academy. 🚀
+
+Kakak bisa tanya apa saja, misalnya:
+- "Apa itu program Fast Track?"
+- "Ada bootcamp Data Science ga?"
+- "Cara daftar magang gimana kak?"
+
+Yuk, mau tanya apa hari ini? 😊"""}
             ]
             st.rerun()
         
