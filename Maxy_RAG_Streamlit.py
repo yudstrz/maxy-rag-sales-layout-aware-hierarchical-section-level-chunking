@@ -307,6 +307,7 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 /* Main App & Background */
+/* Main App & Background */
 .stApp {
     font-family: 'Outfit', sans-serif !important;
     background-color: #f8fafc;
@@ -317,39 +318,39 @@ st.markdown("""
 #MainMenu, footer, header {visibility: hidden;}
 
 /* Typography */
-h1, h2, h3, p, div, span, label {
+h1, h2, h3, p, div, span, label, li {
     font-family: 'Outfit', sans-serif !important;
-    color: #1e293b !important;
+    color: #1e293b; 
 }
 
 h1, h2, h3 {
     font-weight: 700 !important;
+    color: #1e293b !important;
 }
 
 /* Chat Input Styling - Floating Capsule */
 .stChatInput {
     position: fixed;
-    bottom: 30px;
+    bottom: 20px;
     z-index: 1000;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 700px; /* Limit width */
+    padding: 0 16px;
 }
 
 .stChatInput > div {
     border-radius: 30px !important;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #cbd5e1 !important;
     background: white !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-}
-
-.stChatInput > div:focus-within {
-    border-color: #FF6B00 !important;
-    box-shadow: 0 4px 25px rgba(255, 107, 0, 0.15) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
 }
 
 .stChatInput textarea {
     font-family: 'Outfit', sans-serif !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
+    color: #1e293b !important; /* Input text dark */
 }
 
 /* Chat Message Styling */
@@ -359,37 +360,34 @@ h1, h2, h3 {
     padding: 1rem 0 !important;
 }
 
-/* Assistant Message Bubble */
+/* Assistant Message - Clean White Card */
 [data-testid="stChatMessageContent"] {
     background: #ffffff !important;
-    color: #1e293b !important;
-    border-radius: 0px 20px 20px 20px !important;
-    padding: 20px 24px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03) !important;
-    border-left: 4px solid #FF6B00 !important;
-    font-size: 15px !important;
-    line-height: 1.6 !important;
+    color: #334155 !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    padding: 16px 20px !important;
 }
 
-/* User Message Bubble */
+/* User Message - Gradient Orange */
 [data-testid="stChatMessageContent"][class*="user"] {
     background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
     color: white !important;
-    border-radius: 20px 20px 0px 20px !important;
-    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.2) !important;
     border: none !important;
-    border-left: none !important;
 }
 
-/* Links in messages */
+/* Fix text color inside User Bubble */
+[data-testid="stChatMessageContent"][class*="user"] p,
+[data-testid="stChatMessageContent"][class*="user"] div {
+    color: white !important;
+}
+
+/* Links */
 [data-testid="stChatMessageContent"] a {
     color: #FF6B00 !important;
-    text-decoration: none !important;
-    font-weight: 600 !important;
-}
-[data-testid="stChatMessageContent"][class*="user"] a {
-    color: white !important;
-    text-decoration: underline !important;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 /* Sidebar */
@@ -398,76 +396,70 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid #f1f5f9;
 }
 
-/* Sidebar Elements */
-section[data-testid="stSidebar"] h3 {
-    color: #334155 !important;
-    font-size: 14px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    margin-top: 20px !important;
-}
-
-/* Buttons */
+/* Buttons - Secondary (Default) */
 .stButton > button {
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     border: 1px solid #e2e8f0 !important;
     background: white !important;
     color: #475569 !important;
     font-family: 'Outfit', sans-serif !important;
     font-weight: 500 !important;
-    padding: 8px 16px !important;
-    transition: all 0.2s ease !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.2s ease;
+}
+
+.stButton > button p {
+    color: #475569 !important; /* Enforce text color */
 }
 
 .stButton > button:hover {
     border-color: #FF6B00 !important;
     color: #FF6B00 !important;
     background: #fff7ed !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.1);
 }
 
-/* Status Badge Animation */
-@keyframes pulse-orange {
-    0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 107, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); }
+.stButton > button:hover p {
+    color: #FF6B00 !important;
 }
 
-.status-dot {
-    width: 10px;
-    height: 10px;
-    background: #22c55e;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
-    box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
-    animation: pulse-green 2s infinite;
+/* Primary Button (Simpan & Mulai) */
+button[kind="primary"] {
+    background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2) !important;
 }
 
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+button[kind="primary"] p {
+    color: white !important;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .stChatInput {
-        bottom: 0px !important;
-        padding-bottom: 20px !important;
-        background: white !important; /* solid back to hide content behind */
-        border-top: 1px solid #f1f5f9;
-        left: 0;
-        right: 0;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    
-    [data-testid="stChatMessageContent"] {
-        padding: 16px !important;
-        font-size: 14px !important;
-    }
+button[kind="primary"]:hover {
+    box-shadow: 0 6px 15px rgba(255, 107, 0, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+/* Expander - Source References */
+.streamlit-expanderHeader {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+}
+
+.streamlit-expanderContent {
+    background: white !important;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 1rem !important;
+}
+
+.streamlit-expanderContent p {
+    font-size: 13px !important;
+    color: #64748b !important;
+    margin-bottom: 0.5rem;
 }
 </style>
 """, unsafe_allow_html=True)
