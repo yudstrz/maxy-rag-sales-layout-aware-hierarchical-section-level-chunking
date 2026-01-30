@@ -303,163 +303,157 @@ st.set_page_config(
 # Custom CSS - Compatible with Streamlit
 # Custom CSS - Premium & Responsive
 st.markdown("""
-<style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
-/* Main App & Background */
-/* Main App & Background */
+/* GLOBAL THEME OVERRIDES */
 .stApp {
     font-family: 'Outfit', sans-serif !important;
-    background-color: #f8fafc;
-    color: #1e293b !important; /* Force dark text globally */
+    background-color: #f8fafc !important; /* Force nice light grey/white background */
+    color: #334155 !important;
 }
 
-/* Hide Streamlit Elements */
-#MainMenu, footer, header {visibility: hidden;}
-
-/* Typography */
-h1, h2, h3, p, div, span, label, li {
+/* TYPOGRAPHY */
+h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, p, div, span, label, li {
     font-family: 'Outfit', sans-serif !important;
-    color: #1e293b; 
+    color: #334155; /* Default text color - Dark Slate */
 }
 
 h1, h2, h3 {
     font-weight: 700 !important;
-    color: #1e293b !important;
+    color: #1e293b !important; /* Darker headers */
 }
 
-/* Chat Input Styling - Floating Capsule */
-.stChatInput {
-    position: fixed;
-    bottom: 20px;
-    z-index: 1000;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 700px; /* Limit width */
-    padding: 0 16px;
+/* HIDE STREAMLIT CHROME (Footer etc) */
+#MainMenu, header, footer {
+    visibility: hidden;
 }
 
-.stChatInput > div {
-    border-radius: 30px !important;
-    border: 1px solid #cbd5e1 !important;
-    background: white !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
-}
-
-.stChatInput textarea {
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 15px !important;
-    color: #1e293b !important; /* Input text dark */
-}
-
-/* Chat Message Styling */
+/* CHAT MESSAGES */
 .stChatMessage {
     background: transparent !important;
-    border: none !important;
-    padding: 1rem 0 !important;
 }
 
-/* Assistant Message - Clean White Card */
+/* ASSISTANT BUBBLE (White Card) */
 [data-testid="stChatMessageContent"] {
-    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px 12px 12px 12px !important;
     color: #334155 !important;
-    border-radius: 12px !important;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
-    padding: 16px 20px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    padding: 1.5rem !important;
 }
 
-/* User Message - Gradient Orange */
+/* USER BUBBLE (Orange Gradient) */
 [data-testid="stChatMessageContent"][class*="user"] {
     background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
-    color: white !important;
     border: none !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2) !important;
 }
 
-/* Fix text color inside User Bubble */
+/* Fix text inside User Bubble */
 [data-testid="stChatMessageContent"][class*="user"] p,
-[data-testid="stChatMessageContent"][class*="user"] div {
+[data-testid="stChatMessageContent"][class*="user"] div,
+[data-testid="stChatMessageContent"][class*="user"] span {
     color: white !important;
 }
 
 /* Links */
-[data-testid="stChatMessageContent"] a {
+a {
     color: #FF6B00 !important;
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
+}
+a:hover {
+    text-decoration: underline;
 }
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: #ffffff !important;
-    border-right: 1px solid #f1f5f9;
+/* CHAT INPUT - NATIVE STREAMLIT STYLING (No Floating Hacks) */
+/* We target the container of the input to ensure it fits the theme */
+.stChatInput {
+    padding-bottom: 20px !important;
+    background: transparent !important;
 }
 
-/* Buttons - Secondary (Default) */
+/* The actual text box container */
+.stChatInput > div > div {
+    border-radius: 25px !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Focus state */
+.stChatInput > div > div:focus-within {
+    border-color: #FF6B00 !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2) !important;
+}
+
+/* Input text */
+.stChatInput textarea {
+    color: #334155 !important;
+}
+
+/* BUTTONS */
+/* Primary Action (Orange) */
+button[kind="primary"] {
+    background: #FF6B00 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    transition: all 0.2s;
+}
+button[kind="primary"] p {
+    color: white !important;
+}
+button[kind="primary"]:hover {
+    background: #e65100 !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2) !important;
+    transform: translateY(-1px);
+}
+
+/* Secondary Action (Standard) */
 .stButton > button {
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     border: 1px solid #e2e8f0 !important;
     background: white !important;
     color: #475569 !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 500 !important;
-    padding: 0.5rem 1rem !important;
-    transition: all 0.2s ease;
 }
-
 .stButton > button p {
-    color: #475569 !important; /* Enforce text color */
+    color: #475569 !important;
 }
-
 .stButton > button:hover {
     border-color: #FF6B00 !important;
     color: #FF6B00 !important;
-    background: #fff7ed !important;
+    background-color: #fff7ed !important;
 }
-
 .stButton > button:hover p {
     color: #FF6B00 !important;
 }
 
-/* Primary Button (Simpan & Mulai) */
-button[kind="primary"] {
-    background: linear-gradient(135deg, #FF6B00, #FF8E53) !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2) !important;
+/* SIDEBAR */
+section[data-testid="stSidebar"] {
+    background-color: white !important;
+    border-right: 1px solid #f1f5f9;
 }
 
-button[kind="primary"] p {
-    color: white !important;
-}
-
-button[kind="primary"]:hover {
-    box-shadow: 0 6px 15px rgba(255, 107, 0, 0.3) !important;
-    transform: translateY(-1px);
-}
-
-/* Expander - Source References */
+/* EXPANDER (References) */
 .streamlit-expanderHeader {
-    background: #f8fafc !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
+    background-color: white !important;
     border-radius: 8px !important;
-    font-size: 14px !important;
+    color: #334155 !important;
 }
-
 .streamlit-expanderContent {
-    background: white !important;
-    border: 1px solid #e2e8f0;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    padding: 1rem !important;
+    background-color: #f8fafc !important;
+    border-radius: 0 0 8px 8px !important;
+    color: #475569 !important;
 }
 
-.streamlit-expanderContent p {
-    font-size: 13px !important;
-    color: #64748b !important;
-    margin-bottom: 0.5rem;
+/* MOBILE ADJUSTMENTS */
+@media (max-width: 768px) {
+    .stApp {
+        padding-top: 20px;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
