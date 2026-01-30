@@ -310,14 +310,19 @@ st.markdown("""
 .stApp {
     font-family: 'Outfit', sans-serif !important;
     background-color: #f8fafc;
+    color: #1e293b !important; /* Force dark text globally */
 }
 
 /* Hide Streamlit Elements */
 #MainMenu, footer, header {visibility: hidden;}
 
 /* Typography */
-h1, h2, h3 {
+h1, h2, h3, p, div, span, label {
     font-family: 'Outfit', sans-serif !important;
+    color: #1e293b !important;
+}
+
+h1, h2, h3 {
     font-weight: 700 !important;
 }
 
