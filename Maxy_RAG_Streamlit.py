@@ -571,7 +571,7 @@ class HybridRAGPreloaded:
         
         return unique[:self.config.TOP_K_FINAL]
     
-    def query(self, question: str) -> Dict:
+    def query(self, question: str, chat_history: List[Dict] = []) -> Dict:
         sections = self.retrieve(question)
         q_lower = question.lower()
         
@@ -591,7 +591,17 @@ Boleh cerita dulu kak:
                 "sources": []
             }
         
-        if not sections:
+        # Build history text (last 3 turns / 6 messages)
+        history_text = ""
+        if chat_history:
+            recent = chat_history[-6:]
+            for msg in recent:
+                role = "User" if msg["role"] == "user" else "Kak Maxy"
+                history_text += f"{role}: {msg['content']}\n"
+        
+        # If no sections found AND no history, return fallback.
+        # If history exists, we try to answer (maybe context is in history).
+        if not sections and not history_text:
             return {
                 "answer": """Hmm, aku belum nemuin info spesifik soal itu kak 😅
 
@@ -620,6 +630,7 @@ ATURAN UTAMA:
    - "Berdasarkan kurikulum Bootcamp ML..."
 2. JANGAN menyebutkan "[SUMBER 1]" atau "[INFO 1]" secara langsung - gunakan nama program/topik.
 3. JANGAN mengarang info yang tidak ada di konteks.
+4. PERHATIKAN RIWAYAT CHAT! Jika user tanya pertanyaan lanjutan (misal "Harganya berapa?" atau "Cara daftarnya?"), jawab berdasarkan konteks dari percakapan sebelumnya jika relevan.
 
 ATURAN BERDASARKAN JENIS PERTANYAAN:
 
@@ -671,12 +682,15 @@ ATURAN BERDASARKAN JENIS PERTANYAAN:
 
 INGAT: Untuk sapaan dan basa-basi, JANGAN tulis "Rekomendasi Program:" sama sekali!"""
 
-        full_prompt = f"""Konteks:
+        full_prompt = f"""Riwayat Chat:
+{history_text}
+
+Konteks Baru:
 {context_text}
 
-Pertanyaan: {question}
+Pertanyaan Saat Ini: {question}
 
-Jawaban (singkat, relevan):"""
+Jawaban (singkat, relevan, perhatikan riwayat chatting):"""
 
         answer = self.llm.generate(full_prompt, system_prompt)
         
@@ -803,7 +817,9 @@ Yuk, mau tanya apa hari ini? 😊"""}
                      answer = "⚠️ Sistem AI belum siap. Silakan refresh halaman."
                      response = {"answer": answer}
                 else:
-                     response = st.session_state.rag_system.query(prompt)
+                     # Pass previous chat history (exclude current user prompt which is already in 'prompt')
+                     # history is passed as list of dicts: st.session_state.messages[:-1]
+                     response = st.session_state.rag_system.query(prompt, st.session_state.messages[:-1])
                      answer = response["answer"]
             
             st.markdown(answer)
