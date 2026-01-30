@@ -31,33 +31,7 @@ from dataclasses import dataclass, field
 from dotenv import load_dotenv
 load_dotenv()
 
-def get_gemini_api_key():
-    """Get Gemini API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
-    # 1. Check session_state (UI input)
-    if "gemini_api_key" in st.session_state and st.session_state.gemini_api_key:
-        return st.session_state.gemini_api_key
-    # 2. Check Streamlit Secrets (Cloud)
-    try:
-        if "GEMINI_API_KEY" in st.secrets:
-            return st.secrets["GEMINI_API_KEY"]
-    except:
-        pass
-    # 3. Check environment variable (.env)
-    return os.getenv("GEMINI_API_KEY", "")
 
-def get_openrouter_api_key():
-    """Get OpenRouter API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
-    # 1. Check session_state (UI input)
-    if "openrouter_api_key" in st.session_state and st.session_state.openrouter_api_key:
-        return st.session_state.openrouter_api_key
-    # 2. Check Streamlit Secrets (Cloud)
-    try:
-        if "OPENROUTER_API_KEY" in st.secrets:
-            return st.secrets["OPENROUTER_API_KEY"]
-    except:
-        pass
-    # 3. Check environment variable (.env)
-    return os.getenv("OPENROUTER_API_KEY", "")
 
 def get_groq_api_key():
     """Get Groq API key from: 1) session_state (UI input), 2) st.secrets, 3) .env"""
@@ -73,36 +47,14 @@ def get_groq_api_key():
     # 3. Check environment variable (.env)
     return os.getenv("GROQ_API_KEY", "")
 
-class GeminiConfig:
-    BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-    MODEL = "gemini-2.0-flash"
-    
-    @classmethod
-    def get_api_key(cls):
-        return get_gemini_api_key()
 
-class OpenRouterConfig:
-    BASE_URL = "https://openrouter.ai/api/v1"
-    MODEL_LIST = [
-        "google/gemini-2.0-flash-exp:free",
-        "google/gemma-3-12b-it:free",
-        "meta-llama/llama-3.2-3b-instruct:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "deepseek/deepseek-r1-0528:free",
-        "qwen/qwen3-4b:free",
-    ]
-    
-    @classmethod
-    def get_api_key(cls):
-        return get_openrouter_api_key()
 
 class GroqConfig:
     BASE_URL = "https://api.groq.com/openai/v1"
     MODEL_LIST = [
         "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "gemma2-9b-it",
         "mixtral-8x7b-32768",
+        "gemma2-9b-it",
     ]
     
     @classmethod
@@ -304,57 +256,7 @@ class LayoutAwareChunker:
 # ==========================================
 # Multi-LLM (Gemini + OpenRouter)
 # ==========================================
-class GeminiLLM:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.model = GeminiConfig.MODEL
-        self.base_url = GeminiConfig.BASE_URL
-    
-    def generate(self, prompt: str, system_prompt: str = "") -> Optional[str]:
-        url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
-        full_prompt = f"{system_prompt}\n\nUser: {prompt}" if system_prompt else prompt
-        payload = {
-            "contents": [{"parts": [{"text": full_prompt}]}],
-            "generationConfig": {"temperature": 0.7, "maxOutputTokens": 1024}
-        }
-        try:
-            print(f"[GEMINI] Calling API with model: {self.model}", flush=True)
-            response = requests.post(url, json=payload, timeout=30)
-            print(f"[GEMINI] Response status: {response.status_code}", flush=True)
-            response.raise_for_status()
-            result = response.json()
-            if 'candidates' in result and len(result['candidates']) > 0:
-                candidate = result['candidates'][0]
-                if 'content' in candidate and 'parts' in candidate['content']:
-                    return candidate['content']['parts'][0].get('text', '')
-            print(f"[GEMINI] No candidates in response: {result}", flush=True)
-            return None
-        except Exception as e:
-            print(f"[GEMINI] Error: {str(e)}", flush=True)
-            return None
 
-class OpenRouterLLM:
-    def __init__(self, api_key: str):
-        self.client = None
-        if api_key:
-            self.client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
-        self.models = OpenRouterConfig.MODEL_LIST
-
-    def generate(self, prompt: str, system_prompt: str = "") -> Optional[str]:
-        if not self.client:
-            return None
-        for model in self.models:
-            try:
-                completion = self.client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
-                    temperature=0.7,
-                    max_tokens=500,
-                )
-                return completion.choices[0].message.content
-            except:
-                continue
-        return None
 
 class GroqLLM:
     def __init__(self, api_key: str):
@@ -382,36 +284,7 @@ class GroqLLM:
                 continue
         return None
 
-class MultiLLM:
-    def __init__(self):
-        self.gemini = GeminiLLM(GeminiConfig.get_api_key())
-        self.openrouter = OpenRouterLLM(OpenRouterConfig.get_api_key())
-        self.groq = GroqLLM(GroqConfig.get_api_key())
-    
-    def generate(self, prompt: str, system_prompt: str = "") -> str:
-        # Try Gemini first
-        print("[MultiLLM] Trying Gemini first...", flush=True)
-        response = self.gemini.generate(prompt, system_prompt)
-        if response:
-            print("[MultiLLM] Gemini succeeded!", flush=True)
-            return response
-        
-        # Try Groq second (faster inference)
-        print("[MultiLLM] Gemini failed, trying Groq...", flush=True)
-        response = self.groq.generate(prompt, system_prompt)
-        if response:
-            print("[MultiLLM] Groq succeeded!", flush=True)
-            return response
-        
-        # Try OpenRouter last
-        print("[MultiLLM] Groq failed, trying OpenRouter...", flush=True)
-        response = self.openrouter.generate(prompt, system_prompt)
-        if response:
-            print("[MultiLLM] OpenRouter succeeded!", flush=True)
-            return response
-        
-        print("[MultiLLM] All providers failed!", flush=True)
-        return "Mohon maaf, semua server AI sedang sibuk. Silakan coba lagi."
+
 
 # ==========================================
 # Streamlit UI - Native Components
@@ -627,8 +500,8 @@ def load_rag_system():
         reranker = CrossEncoder(config.RERANKER_MODEL)
         
         # Step 6: Initialize LLM
-        print("[RAG] Initializing LLM...", flush=True)
-        llm = MultiLLM()
+        print("[RAG] Initializing Groq LLM...", flush=True)
+        llm = GroqLLM(GroqConfig.get_api_key())
         
         # Create RAG object with pre-loaded components
         rag = HybridRAGPreloaded(
@@ -728,14 +601,71 @@ Tapi kakak bisa langsung tanya ke Admin Maxy:
         for i, section in enumerate(sections):
             context_text += f"[SUMBER {i+1}] {section.section_path}\n{section.full_text}\n\n"
 
-        system_prompt = """Kamu adalah 'Kak Maxy', AI Consultant Maxy Academy yang ramah! 🚀
+        system_prompt = """Kamu adalah 'Kak Maxy', AI Consultant Maxy Academy yang ramah, natural, dan helpful! 🚀
 
-ATURAN:
-- Panggil user dengan "Kak"
-- Bahasa casual tapi profesional
-- Pakai emoji secukupnya
-- JANGAN sebut "[SUMBER 1]" langsung
-- HANYA rekomendasikan program Maxy Academy"""
+PERSONALITY:
+- Panggil user dengan "Kak" atau "Kakak"
+- Gunakan bahasa casual tapi tetap profesional
+- Boleh pakai emoji secukupnya (1-3 per pesan)
+- Kalau ada pertanyaan yang kurang jelas, TANYA BALIK dulu sebelum kasih rekomendasi
+
+ATURAN UTAMA:
+1. Kamu BOLEH menyebutkan sumber dengan cara natural, contoh:
+   - "Di materi AI Day 1 tentang Ethics..."
+   - "Menurut info program Data Science..."
+   - "Berdasarkan kurikulum Bootcamp ML..."
+2. JANGAN menyebutkan "[SUMBER 1]" atau "[INFO 1]" secara langsung - gunakan nama program/topik.
+3. JANGAN mengarang info yang tidak ada di konteks.
+
+ATURAN BERDASARKAN JENIS PERTANYAAN:
+
+1. Untuk SAPAAN/BASA-BASI/CASUAL CHAT (halo, selamat pagi, apa kabar, pujian, candaan, dll):
+   - Balas dengan ramah dan natural seperti manusia
+   - Contoh sapaan: "Halo kak! Selamat pagi juga! Ada yang bisa Kak Maxy bantu hari ini? 😊"
+   - Contoh pujian: "Wah makasih kak! Kakak juga pasti keren. Ada yang mau ditanyakan tentang program Maxy?"
+   - JANGAN PERNAH langsung kasih "Rekomendasi Program:" untuk chat casual seperti ini!
+
+2. Untuk pertanyaan INFO PERUSAHAAN (Instagram, Facebook, CEO, alamat, harga, dll):
+   - Jawab langsung dan singkat tanpa rekomendasi program
+   - Contoh: "Instagram Maxy Academy: https://www.instagram.com/maxy.academy"
+
+3. Untuk pertanyaan BELAJAR/KARIR/BOOTCAMP (ingin belajar X, rekomendasi program, dll):
+   - Jawab dengan penjelasan + rekomendasi 1-3 program relevan
+   - Sertakan nama program, kategori, apa yang dipelajari, dan link jika ada
+   - PENTING: HANYA rekomendasikan program Maxy Academy yang ada di konteks. JANGAN menyebut bootcamp dari luar Maxy Academy.
+   - Format:
+     **Rekomendasi Program:**
+     1. **Nama Program** (Kategori)
+        - Apa yang dipelajari
+        - Link: [jika ada di konteks]
+
+4. Untuk pertanyaan DETAIL/KURIKULUM/SILABUS BOOTCAMP (materi apa saja, hari ke berapa, tools apa):
+   - Jelaskan detail materi per hari/session jika ada di konteks
+   - Sertakan: topik, durasi, tools yang digunakan, dan task/studi kasus
+   - Contoh: "Di Hari ke-3, kamu akan belajar HTML & CSS (1 jam) dengan tools VSCode..."
+
+5. Untuk hal yang TIDAK DIKETAHUI:
+   - Bilang: "Aku kurang tau soal itu kak, tapi kakak bisa tanya langsung ke Admin Maxy ya!"
+   - Arahkan ke WhatsApp Admin
+
+6. STRATEGI SALES CONSULTANT:
+   - Posisikan diri sebagai "Konsultan Karir", bukan admin/robot
+   - Fokus pada 'Kecepatan Penyaluran Kerja', bukan fitur/materi
+   - Pahami pain point: "Experience Paradox" (butuh kerja tapi butuh pengalaman)
+   - Prioritaskan Fast Track (Rp8jt) sebagai solusi utama
+   - Gunakan Reguler (Rp5jt) sebagai pembanding (Decoy Effect)
+
+7. HANDLING OBJECTION "MAHAL":
+   - JIKA user bilang "mahal" TANPA konteks → tanya dulu: "Mahal yang mana kak? Boleh tau paket yang dimaksud?"
+   - JIKA user sudah sebut paket spesifik (misal "Fast Track mahal"):
+     * Jangan minta maaf soal harga
+     * Jelaskan ROI: Investasi 8jt, magang gaji UMR 4.5jt/bulan -> 2 bulan balik modal
+     * Tekankan: "Ini investasi karir, bukan pengeluaran"
+   - JIKA user tetap keberatan → tawarkan opsi cicilan atau paket Reguler
+
+8. Akhiri dengan pertanyaan lanjutan atau link WA jika relevan.
+
+INGAT: Untuk sapaan dan basa-basi, JANGAN tulis "Rekomendasi Program:" sama sekali!"""
 
         full_prompt = f"""Konteks:
 {context_text}
@@ -765,65 +695,31 @@ def main():
     st.divider()
     
     # Check API Key - show input if not set
-    gemini_key = get_gemini_api_key()
-    openrouter_key = get_openrouter_api_key()
+    # Check API Key - show input if not set
     groq_key = get_groq_api_key()
     
-    if not gemini_key and not openrouter_key and not groq_key:
-        st.warning("⚠️ API Key belum diset. Pilih provider dan masukkan API Key untuk mulai chat.")
-        
-        # Provider selection with radio button
-        provider = st.radio(
-            "🤖 Pilih AI Provider:",
-            ["Gemini (Google)", "Groq", "OpenRouter"],
-            horizontal=True,
-            help="Pilih salah satu provider AI yang ingin digunakan"
-        )
+    if not groq_key:
+        st.warning("⚠️ Groq API Key belum diset. Masukkan API Key untuk mulai chat.")
         
         with st.form("api_key_form"):
-            if provider == "Gemini (Google)":
-                st.markdown("**🔑 Masukkan Gemini API Key:**")
-                api_key_input = st.text_input(
-                    "Gemini API Key",
-                    type="password",
-                    placeholder="AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxx",
-                    help="Dapatkan gratis di Google AI Studio"
-                )
-                st.markdown("[📎 Dapatkan Gemini API Key di sini](https://aistudio.google.com/app/apikey)")
-            elif provider == "Groq":
-                st.markdown("**🔑 Masukkan Groq API Key:**")
-                api_key_input = st.text_input(
-                    "Groq API Key",
-                    type="password",
-                    placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx",
-                    help="Dapatkan gratis di console.groq.com"
-                )
-                st.markdown("[📎 Dapatkan Groq API Key di sini](https://console.groq.com/keys)")
-            else:
-                st.markdown("**🔑 Masukkan OpenRouter API Key:**")
-                api_key_input = st.text_input(
-                    "OpenRouter API Key",
-                    type="password",
-                    placeholder="sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx",
-                    help="Dapatkan gratis di openrouter.ai"
-                )
-                st.markdown("[📎 Dapatkan OpenRouter API Key di sini](https://openrouter.ai/keys)")
+            st.markdown("**🔑 Masukkan Groq API Key:**")
+            api_key_input = st.text_input(
+                "Groq API Key",
+                type="password",
+                placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx",
+                help="Dapatkan gratis di console.groq.com"
+            )
+            st.markdown("[📎 Dapatkan Groq API Key di sini](https://console.groq.com/keys)")
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
                 if api_key_input:
-                    if provider == "Gemini (Google)":
-                        st.session_state.gemini_api_key = api_key_input
-                    elif provider == "Groq":
-                        st.session_state.groq_api_key = api_key_input
-                    else:
-                        st.session_state.openrouter_api_key = api_key_input
-                    
+                    st.session_state.groq_api_key = api_key_input
                     st.success("✅ API Key tersimpan!")
                     st.rerun()
                 else:
-                    st.error(f"❌ Masukkan {provider} API Key!")
+                    st.error("❌ Masukkan Groq API Key!")
         
         st.stop()
     
@@ -841,7 +737,7 @@ def main():
             st.write("🔍 Membangun BM25 search index...")
             st.write("📊 Membangun vector database (FAISS)...")
             st.write("⚖️ Memuat reranker model (~80MB)...")
-            st.write("🤖 Menginisialisasi Gemini AI...")
+            st.write("🤖 Menginisialisasi Groq AI...")
             
             # Actually load the RAG system
             rag = load_rag_system()
@@ -942,50 +838,35 @@ def main():
         # API Key Settings
         st.markdown("### ⚙️ Settings")
         
-        gemini_input = st.text_input(
-            "Gemini API Key",
-            value=st.session_state.get("gemini_api_key", ""),
+        groq_input = st.text_input(
+            "Groq API Key",
+            value=st.session_state.get("groq_api_key", ""),
             type="password",
-            help="API Key dari Google AI Studio",
-            key="gemini_key_input_field"
+            help="API Key dari Groq",
+            key="groq_key_input_field"
         )
         
-        openrouter_input = st.text_input(
-            "OpenRouter API Key",
-            value=st.session_state.get("openrouter_api_key", ""),
-            type="password",
-            help="API Key dari OpenRouter",
-            key="openrouter_key_input_field"
-        )
-        
-        if st.button("💾 Simpan API Keys", use_container_width=True):
-            st.session_state.gemini_api_key = gemini_input
-            st.session_state.openrouter_api_key = openrouter_input
+        if st.button("💾 Simpan API Key", use_container_width=True):
+            st.session_state.groq_api_key = groq_input
             # Clear cached RAG so it reloads with new key
             if "rag_loaded" in st.session_state:
                 del st.session_state.rag_loaded
             if "rag_system" in st.session_state:
                 del st.session_state.rag_system
-            st.success("API Keys tersimpan! Reload sistem...")
+            st.success("API Key tersimpan! Reload sistem...")
             st.rerun()
         
         # Show current API key status
         st.markdown("**Status:**")
-        gemini_key = get_gemini_api_key()
-        openrouter_key = get_openrouter_api_key()
+        groq_key = get_groq_api_key()
         
-        if gemini_key:
-            st.caption(f"✅ Gemini: ...{gemini_key[-8:]}")
+        if groq_key:
+            st.caption(f"✅ Groq: ...{groq_key[-8:]}")
         else:
-            st.caption("⚠️ Gemini: Belum diset")
-        
-        if openrouter_key:
-            st.caption(f"✅ OpenRouter: ...{openrouter_key[-8:]}")
-        else:
-            st.caption("⚠️ OpenRouter: Belum diset")
+            st.caption("⚠️ Groq: Belum diset")
 
         st.divider()
-        st.caption("Powered by **Gemini AI** & **OpenRouter**")
+        st.caption("Powered by **Groq LPU**")
         st.caption("© 2026 Maxy Academy")
 
 if __name__ == "__main__":
