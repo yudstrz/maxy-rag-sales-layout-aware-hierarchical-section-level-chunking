@@ -14,7 +14,12 @@ def load_custom_css():
         }
 
         /* --- TYPOGRAPHY --- */
-        h1, h2, h3, h4, h5, h6, p, div, span, label, li {
+        /* --- TYPOGRAPHY --- */
+        .stApp {
+            font-family: 'Outfit', sans-serif !important;
+        }
+        
+        h1, h2, h3, h4, h5, h6, p, label, li, .stMarkdown, .stText {
             font-family: 'Outfit', sans-serif !important;
             color: #334155 !important;
         }
@@ -31,15 +36,27 @@ def load_custom_css():
             padding-bottom: 2rem !important;
         }
 
+        /* --- INPUT FIELDS (Global) --- */
+        .stTextInput input {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+        }
+        .stTextInput input:focus {
+            border-color: #FF6B00 !important;
+            box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2) !important;
+        }
+
         /* --- CHAT INPUT --- */
         .stChatInput {
             background-color: transparent !important;
         }
 
-        /* The actual input box */
+        /* The actual chat input box */
         .stChatInput textarea {
-            background-color: white !important;
-            color: #334155 !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
             border: 1px solid #cbd5e1 !important;
             border-radius: 20px !important;
         }

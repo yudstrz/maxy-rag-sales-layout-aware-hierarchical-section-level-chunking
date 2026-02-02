@@ -47,12 +47,19 @@ def main():
         with st.form("api_key_form"):
             st.markdown("**🔑 Masukkan Groq API Key:**")
             api_key_input = st.text_input(
-                "Groq API Key",
+                "🔑 Masukkan Groq / Z.ai API Key",
                 type="password",
-                placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx",
-                help="Dapatkan gratis di console.groq.com"
+                placeholder="gsk_... atau Z.ai key",
+                help="Bisa pakai Groq API Key (console.groq.com) atau Z.ai (ZhipuAI)."
             )
-            st.markdown("[📎 Dapatkan Groq API Key di sini](https://console.groq.com/keys)")
+            st.markdown("""
+            <div style='font-size: 13px; color: #64748b; margin-bottom: 8px;'>
+            Belum punya API Key?
+            <a href="https://console.groq.com/keys" target="_blank" style="text-decoration: none; color: #FF6B00; font-weight: 500;">Dapatkan Groq Key</a>
+            atau
+            <a href="https://open.bigmodel.cn/" target="_blank" style="text-decoration: none; color: #FF6B00; font-weight: 500;">Z.ai Key</a>
+            </div>
+            """, unsafe_allow_html=True)
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
