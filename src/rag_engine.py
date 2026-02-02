@@ -332,6 +332,9 @@ Jawaban (singkat, relevan, perhatikan riwayat chatting):"""
 
         answer = self.llm.generate(full_prompt, system_prompt)
         
+        if not answer:
+            answer = "⚠️ Maaf, terjadi kesalahan pada koneksi AI. Pastikan API Key sudah benar."
+
         wa_link = "\n\n👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)"
         high_intent = ["daftar", "biaya", "bayar", "gabung", "join", "info", "tanya", "program", "bootcamp"]
         if any(kw in q_lower for kw in high_intent) and "wa.me" not in answer:

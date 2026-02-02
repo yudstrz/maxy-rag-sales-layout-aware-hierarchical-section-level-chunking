@@ -52,14 +52,7 @@ def main():
                 placeholder="gsk_... atau Z.ai key",
                 help="Bisa pakai Groq API Key (console.groq.com) atau Z.ai (ZhipuAI)."
             )
-            st.markdown("""
-            <div style='font-size: 13px; color: #64748b; margin-bottom: 8px;'>
-            Belum punya API Key?
-            <a href="https://console.groq.com/keys" target="_blank" style="text-decoration: none; color: #FF6B00; font-weight: 500;">Dapatkan Groq Key</a>
-            atau
-            <a href="https://open.bigmodel.cn/" target="_blank" style="text-decoration: none; color: #FF6B00; font-weight: 500;">Z.ai Key</a>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("Belum punya API Key? [Dapatkan Groq Key](https://console.groq.com/keys) atau [Z.ai Key](https://open.bigmodel.cn/)")
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
