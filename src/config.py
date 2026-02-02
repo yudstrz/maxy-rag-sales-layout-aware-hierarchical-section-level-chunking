@@ -41,8 +41,13 @@ class ZaiConfig:
 
     @classmethod
     def get_api_key(cls):
+        # 1. Check session_state (UI input)
+        if "zai_api_key" in st.session_state and st.session_state.zai_api_key:
+            return st.session_state.zai_api_key
+        # 2. Check Streamlit Secrets (Cloud)
         if "ZAI_API_KEY" in st.secrets:
             return st.secrets["ZAI_API_KEY"]
+        # 3. Check environment variable (.env)
         return os.getenv("ZAI_API_KEY", "")
 
 class HybridRAGConfig:
