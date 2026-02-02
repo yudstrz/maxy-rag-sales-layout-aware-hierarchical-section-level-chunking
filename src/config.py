@@ -35,7 +35,8 @@ class ZaiConfig:
     # Endpoint: https://open.bigmodel.cn/api/paas/v4/
     BASE_URL = "https://open.bigmodel.cn/api/paas/v4/"
     MODEL_LIST = [
-        "glm-4-flash", # "GLM-4.7 flash" might be mapped to this or similar ID
+        "glm-4.7-flash", 
+        "glm-4.5-flash",
     ]
 
     @classmethod
