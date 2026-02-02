@@ -72,10 +72,23 @@ class LayoutAwareChunker:
                 self.position_counter += 1
         return sections
     
-    def process_curriculum(self, path: str) -> List[SectionChunk]:
+    def process_curriculum(self, path: str, url_map: Dict[str, str] = None) -> List[SectionChunk]:
         sections = []
         if not os.path.exists(path):
             return sections
+        
+        # Manual mapping for accurate linking
+        # Key: partial string in curriculum name (lower), Value: Key in url_map (bootcamp name lower)
+        manual_matches = {
+            "ui ux": "8 day bootcamp ui/ux",
+            "frontend": "frontend",
+            "backend": "build backend fast with python", # or checks for other backend courses
+            "data science": "8 day bootcamp data science with python",
+            "digital marketing": "digital marketing mastery",
+            "sales": "sales masterclass",
+            "ai curricullum": "prompt ai" # Fallback guess, user can refine
+        }
+
         with open(path, 'r', encoding='utf-8-sig') as f:
             for line in f:
                 if not line.strip():
@@ -105,6 +118,25 @@ class LayoutAwareChunker:
                 if tools:
                     full_text += f"\nTools: {tools}\n"
                 
+                # Try to find URL
+                url = None
+                if url_map:
+                    prog_lower = program.lower()
+                    
+                    # 1. Exact match
+                    if prog_lower in url_map:
+                        url = url_map[prog_lower]
+                    
+                    # 2. Manual mapping lookup
+                    if not url:
+                        for key, target in manual_matches.items():
+                            if key in prog_lower and target in url_map:
+                                url = url_map[target]
+                                break
+                
+                if url:
+                    full_text += f"\nLink Program: {url}"
+                
                 abstract = self._create_abstract(full_text, title=topic or module)
                 sections.append(SectionChunk(
                     section_id=self._generate_id(full_text),
@@ -114,7 +146,7 @@ class LayoutAwareChunker:
                     abstract=abstract,
                     source_type='curriculum',
                     position=self.position_counter,
-                    metadata={'program_name': program, 'day': day}
+                    metadata={'program_name': program, 'day': day, 'url': url}
                 ))
                 self.position_counter += 1
         return sections
@@ -153,9 +185,24 @@ class LayoutAwareChunker:
     
     def process_all(self) -> List[SectionChunk]:
         all_sections = []
-        all_sections.extend(self.process_bootcamp(self.config.BOOTCAMP_DATASET))
+        
+        # 1. Load Bootcamps first to build URL map
+        bootcamp_chunks = self.process_bootcamp(self.config.BOOTCAMP_DATASET)
+        all_sections.extend(bootcamp_chunks)
+        
+        url_map = {}
+        for chunk in bootcamp_chunks:
+            # chunk.title is the program name (from process_bootcamp)
+            # chunk.metadata['url'] contains the link
+            if chunk.title and chunk.metadata.get('url'):
+                url_map[chunk.title.lower()] = chunk.metadata['url']
+        
+        # 2. Load Company Info
         all_sections.extend(self.process_company(self.config.COMPANY_INFO))
-        all_sections.extend(self.process_curriculum(self.config.CURRICULUM_DATASET))
+        
+        # 3. Load Curriculum with URL injection
+        all_sections.extend(self.process_curriculum(self.config.CURRICULUM_DATASET, url_map=url_map))
+        
         return all_sections
 
 class HybridRAGPreloaded:
@@ -246,89 +293,56 @@ Tapi kakak bisa langsung tanya ke Admin Maxy:
 
         system_prompt = """Kamu adalah 'Kak Maxy', AI Consultant Maxy Academy yang ramah, natural, dan helpful! 🚀
 
+PERHATIAN UTAMA (CRITICAL INSTRUCTION):
+1. **CONTEXT AWARENESS IS KING!** 
+   - Sebelum menjawab, BACA DULU "RIWAYAT CHAT".
+   - Jika user merespons jawaban kamu sebelumnya (misal: "kok mahal", "oke makasih", "cara daftarnya?"), JAWABLAH MERESPONS CHAT TERSEBUT.
+   - JANGAN mengulang-ulang definisi produk jika user hanya berkomentar soal harga/fitur.
+
+2. **HANDLING OBJECTION "MAHAL" (PRIORITAS TINGGI):**
+   - Jika user bilang "mahal", "kemahalan", atau "ada diskon?":
+   - **JANGAN** sebutkan harga lagi (user sudah tau harganya makanya bilang mahal).
+   - **JANGAN** minta maaf.
+   - **LAKUKAN:** Jelaskan *Value/ROI* (Return on Investment).
+   - "Memang investasi ini terlihat besar di awal kak, tapi coba bayangkan..."
+   - Bandingkan dengan potensi Gaji Magang (UMR ~4.5jt). "Setelah lulus, kakak bisa dapat gaji magang yang bisa menutup biaya ini dalam 2 bulan saja!"
+   - Tawarkan solusi cicilan atau paket alternatif (Reguler) jika ada.
+
 PERSONALITY:
 - Panggil user dengan "Kak" atau "Kakak"
 - Gunakan bahasa casual tapi tetap profesional
-- Boleh pakai emoji secukupnya (1-3 per pesan)
-- Kalau ada pertanyaan yang kurang jelas, TANYA BALIK dulu sebelum kasih rekomendasi
+- Boleh pakai emoji secukupnya
+- Posisi kamu adalah KONSULTAN KARIR, bukan sekadar mesin penjawab.
 
-ATURAN UTAMA:
-1. Kamu BOLEH menyebutkan sumber dengan cara natural, contoh:
-   - "Di materi AI Day 1 tentang Ethics..."
-   - "Menurut info program Data Science..."
-   - "Berdasarkan kurikulum Bootcamp ML..."
-2. JANGAN menyebutkan "[SUMBER 1]" atau "[INFO 1]" secara langsung - gunakan nama program/topik.
-3. JANGAN mengarang info yang tidak ada di konteks.
-4. **PENTING: PERHATIKAN RIWAYAT CHAT!**
-   - Jika user mengajukan pertanyaan lanjutan (misal "Harganya berapa?" atau "Cara daftarnya?"), kamu HARUS menjawab berdasarkan konteks program/topik yang sedang dibahas di chat sebelumnya.
-   - Jika user menggunakan kata ganti seperti "itu", "program tersebut", atau "bootcamp tadi", rujuklah ke topik terakhir di riwayat chat.
+ATURAN MENJAWAB:
+1. **SAPAAN/BASA-BASI:** Jawab ramah, jangan tawari produk dulu.
+2. **PERTANYAAN PROGRAM:** Rekomendasikan 1-3 program Maxy yang relevan dengan Context. WAJIB sertakan LINK jika ada.
+3. **PERTANYAAN LANJUTAN:** Jika user tanya "itu apa?", "harganya?", "kapan mulainya?", lihat konteks chat sebelumnya.
 
-ATURAN BERDASARKAN JENIS PERTANYAAN:
+FORMAT REKOMENDASI (Jika relevan):
+**Rekomendasi Program:**
+1. **Nama Program**
+   - Penjelasan singkat
+   - 🔗 **Link:** [URL]
 
-1. Untuk SAPAAN/BASA-BASI/CASUAL CHAT (halo, selamat pagi, apa kabar, pujian, candaan, dll):
-   - Balas dengan ramah dan natural seperti manusia
-   - Contoh sapaan: "Halo kak! Selamat pagi juga! Ada yang bisa Kak Maxy bantu hari ini? 😊"
-   - Contoh pujian: "Wah makasih kak! Kakak juga pasti keren. Ada yang mau ditanyakan tentang program Maxy?"
-   - JANGAN PERNAH langsung kasih "Rekomendasi Program:" untuk chat casual seperti ini!
+JANGAN MENGARANG INFO YANG TIDAK ADA DI DATA.
+"""
 
-2. Untuk pertanyaan INFO PERUSAHAAN (Instagram, Facebook, CEO, alamat, harga, dll):
-   - Jawab langsung dan singkat tanpa rekomendasi program
-   - Contoh: "Instagram Maxy Academy: https://www.instagram.com/maxy.academy"
-
-3. Untuk pertanyaan BELAJAR/KARIR/BOOTCAMP (ingin belajar X, rekomendasi program, dll):
-   - Jawab dengan penjelasan + rekomendasi 1-3 program relevan
-   - Sertakan nama program, kategori, apa yang dipelajari, dan link jika ada
-   - PENTING: HANYA rekomendasikan program Maxy Academy yang ada di konteks. JANGAN menyebut bootcamp dari luar Maxy Academy.
-   - **WAJIB MENYERTAKAN LINK:** Jika ada info "Link Program" atau URL di konteks, KAMU HARUS MENULISNYA di jawaban.
-   - Format:
-     **Rekomendasi Program:**
-     1. **Nama Program** (Kategori)
-        - Apa yang dipelajari
-        - 🔗 **Link Pendaftaran:** [Tulis URL disini]
-
-4. Untuk pertanyaan DETAIL/KURIKULUM/SILABUS BOOTCAMP (materi apa saja, hari ke berapa, tools apa):
-   - Jelaskan detail materi per hari/session jika ada di konteks
-   - Sertakan: topik, durasi, tools yang digunakan, dan task/studi kasus
-   - Contoh: "Di Hari ke-3, kamu akan belajar HTML & CSS (1 jam) dengan tools VSCode..."
-
-5. Untuk hal yang TIDAK DIKETAHUI:
-   - Bilang: "Aku kurang tau soal itu kak, tapi kakak bisa tanya langsung ke Admin Maxy ya!"
-   - Arahkan ke WhatsApp Admin
-
-6. STRATEGI SALES CONSULTANT:
-   - Posisikan diri sebagai "Konsultan Karir", bukan admin/robot
-   - Fokus pada 'Kecepatan Penyaluran Kerja', bukan fitur/materi
-   - Pahami pain point: "Experience Paradox" (butuh kerja tapi butuh pengalaman)
-   - Prioritaskan Fast Track (Rp8jt) sebagai solusi utama
-   - Gunakan Reguler (Rp5jt) sebagai pembanding (Decoy Effect)
-
-7. HANDLING OBJECTION "MAHAL":
-   - JIKA user bilang "mahal" TANPA konteks → tanya dulu: "Mahal yang mana kak? Boleh tau paket yang dimaksud?"
-   - JIKA user sudah sebut paket spesifik (misal "Fast Track mahal"):
-     * Jangan minta maaf soal harga
-     * Jelaskan ROI: Investasi 8jt, magang gaji UMR 4.5jt/bulan -> 2 bulan balik modal
-     * Tekankan: "Ini investasi karir, bukan pengeluaran"
-   - JIKA user tetap keberatan → tawarkan opsi cicilan atau paket Reguler
-
-8. Akhiri dengan pertanyaan lanjutan atau link WA jika relevan.
-
-INGAT: Untuk sapaan dan basa-basi, JANGAN tulis "Rekomendasi Program:" sama sekali!"""
-
-        full_prompt = f"""=== RIWAYAT CHAT (PENTING: Gunakan ini untuk konteks pertanyaan lanjutan) ===
+        full_prompt = f"""=== RIWAYAT CHAT (URUTAN TERBARU DI BAWAH) ===
 {history_text}
 
-=== INFORMASI PENDUKUNG (RAG) ===
+=== INFORMASI PENDUKUNG (DATA FACTUAL) ===
 {context_text}
 
-=== PERTANYAAN USER SAAT INI ===
+=== INPUT USER TERBARU ===
 {question}
 
-INSTRUKSI:
-Jawablah pertanyaan user {question} dengan ramah.
-Jika pertanyaan user tidak jelas atau merujuk ke "itu/ini" (seperti "berapa harganya?"), LIHAT "RIWAYAT CHAT" untuk mengetahui apa yang sedang dibahas sebelumnya.
-Gunakan "INFORMASI PENDUKUNG" untuk fakta dan data.
+INSTRUKSI KHUSUS UNTUK PESAN INI:
+- Analisis dulu: Apakah ini pertanyaan baru ATAU tanggapan atas chat sebelumnya?
+- Jika tanggapan (seperti "kok mahal"), gunakan strategi HANDLING OBJECTION.
+- Gunakan *INFORMASI PENDUKUNG* hanya untuk fakta, bukan untuk gaya bahasa.
 
-Jawaban (singkat, relevan, perhatikan riwayat chatting):"""
+Jawaban Kak Maxy:"""
 
         answer = self.llm.generate(full_prompt, system_prompt)
         
