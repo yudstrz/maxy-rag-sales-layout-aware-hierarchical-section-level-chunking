@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import streamlit as st
-from src.config import get_groq_api_key
+from src.config import get_groq_api_key, ZaiConfig
 from src.ui import load_custom_css
 from src.rag_engine import load_rag_system
 
