@@ -117,10 +117,12 @@ Yuk, mau tanya apa hari ini? 😊"""}
         st.markdown("**💡 Pertanyaan Populer:**")
         cols = st.columns(2)
         quick_qs = [
-            "Apa saja daftar lengkap akun media sosial Maxy Academy?",
             "Info paket Fast Track",
             "Info paket Bootcamp 5 minggu",
-            "Info paket Bootcamp 8 minggu"
+            "Info paket Bootcamp 8 minggu",
+            "Info paket Beasiswa Income Sharing Agreement (ISA)",
+            "Request program custom",
+            "Apa saja daftar lengkap akun media sosial Maxy Academy?"
         ]
         for i, q in enumerate(quick_qs):
             with cols[i % 2]:
@@ -161,12 +163,12 @@ Yuk, mau tanya apa hari ini? 😊"""}
         st.markdown("### 🎯 Contoh Pertanyaan")
         
         examples = [
-            "Apa saja daftar lengkap akun media sosial Maxy Academy?",
             "Info paket Fast Track",
             "Info paket Bootcamp 5 minggu",
             "Info paket Bootcamp 8 minggu",
-            "Siapa CEO Maxy?",
+            "Info paket Beasiswa Income Sharing Agreement (ISA)",
             "Request program custom",
+            "Apa saja daftar lengkap akun media sosial Maxy Academy?"
         ]
         
         for ex in examples:
