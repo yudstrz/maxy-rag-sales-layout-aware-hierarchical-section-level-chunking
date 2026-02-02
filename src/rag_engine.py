@@ -279,11 +279,12 @@ ATURAN BERDASARKAN JENIS PERTANYAAN:
    - Jawab dengan penjelasan + rekomendasi 1-3 program relevan
    - Sertakan nama program, kategori, apa yang dipelajari, dan link jika ada
    - PENTING: HANYA rekomendasikan program Maxy Academy yang ada di konteks. JANGAN menyebut bootcamp dari luar Maxy Academy.
+   - **WAJIB MENYERTAKAN LINK:** Jika ada info "Link Program" atau URL di konteks, KAMU HARUS MENULISNYA di jawaban.
    - Format:
      **Rekomendasi Program:**
      1. **Nama Program** (Kategori)
         - Apa yang dipelajari
-        - Link: [jika ada di konteks]
+        - 🔗 **Link Pendaftaran:** [Tulis URL disini]
 
 4. Untuk pertanyaan DETAIL/KURIKULUM/SILABUS BOOTCAMP (materi apa saja, hari ke berapa, tools apa):
    - Jelaskan detail materi per hari/session jika ada di konteks
@@ -332,7 +333,7 @@ Jawaban (singkat, relevan, perhatikan riwayat chatting):"""
         answer = self.llm.generate(full_prompt, system_prompt)
         
         wa_link = "\n\n👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)"
-        high_intent = ["daftar", "biaya", "bayar", "gabung", "join"]
+        high_intent = ["daftar", "biaya", "bayar", "gabung", "join", "info", "tanya", "program", "bootcamp"]
         if any(kw in q_lower for kw in high_intent) and "wa.me" not in answer:
             answer += wa_link
         
