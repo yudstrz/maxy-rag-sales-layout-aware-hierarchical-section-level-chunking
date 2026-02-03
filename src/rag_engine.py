@@ -274,7 +274,7 @@ Boleh cerita dulu kak:
         if chat_history:
             recent = chat_history[-10:]
             for msg in recent:
-                role = "User" if msg["role"] == "user" else "Kak Maxy"
+                role = "User" if msg["role"] == "user" else "MinMax"
                 history_text += f"{role}: {msg['content']}\n"
         
         # If no sections found AND no history, return fallback.
@@ -292,7 +292,7 @@ Tapi kakak bisa langsung tanya ke Admin Maxy:
         for i, section in enumerate(sections):
             context_text += f"[SUMBER {i+1}] {section.section_path}\n{section.full_text}\n\n"
 
-        system_prompt = """Kamu adalah 'Kak Maxy', AI Consultant Maxy Academy yang cerdas, empatik, dan sales-oriented! 🚀
+        system_prompt = """Kamu adalah 'MinMax', AI Consultant Maxy Academy yang cerdas, empatik, dan sales-oriented! 🚀
 
 CORE INTELLIGENCE (CARA BERPIKIR):
 1. **ANALISIS KONTEKS MENDALAM:**
@@ -353,7 +353,7 @@ INSTRUKSI KHUSUS UNTUK PESAN INI:
 - Jika tanggapan (seperti "kok mahal"), gunakan strategi HANDLING OBJECTION.
 - Gunakan *INFORMASI PENDUKUNG* hanya untuk fakta, bukan untuk gaya bahasa.
 
-Jawaban Kak Maxy:"""
+Jawaban MinMax:"""
 
         answer = self.llm.generate(full_prompt, system_prompt)
         

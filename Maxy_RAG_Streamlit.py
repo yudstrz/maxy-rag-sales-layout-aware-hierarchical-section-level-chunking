@@ -19,7 +19,7 @@ from src.rag_engine import load_rag_system
 
 # Page Config
 st.set_page_config(
-    page_title="Kak Maxy - AI Assistant",
+    page_title="MinMax - AI Assistant",
     page_icon="🚀",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -31,7 +31,7 @@ def main():
     # Header
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.title("🚀 Kak Maxy")
+        st.title("🚀 MinMax")
         st.caption("AI Consultant - Maxy Academy")
     with col2:
         st.markdown('<div class="status-badge"><div class="status-dot"></div>Online</div>', unsafe_allow_html=True)
@@ -80,7 +80,7 @@ def main():
         st.session_state.messages = [
             {"role": "assistant", "content": """**Halo kak! 👋 Selamat datang di Maxy Academy AI Assistant!**
 
-Aku **Kak Maxy**, siap bantu kakak menemukan program karir impian atau jawab pertanyaan seputar Maxy Academy. 🚀
+Aku **MinMax**, siap bantu kakak menemukan program karir impian atau jawab pertanyaan seputar Maxy Academy. 🚀
 
 Kakak bisa tanya apa saja, misalnya:
 - "Apa itu program Fast Track?"
@@ -92,7 +92,7 @@ Yuk, mau tanya apa hari ini? 😊"""}
     
     # Load RAG
     if "rag_loaded" not in st.session_state:
-        with st.status("🔄 Mempersiapkan Kak Maxy...", expanded=True) as status:
+        with st.status("🔄 Mempersiapkan MinMax...", expanded=True) as status:
             st.write("📂 Memuat data & core system...")
             rag = load_rag_system()
             
@@ -101,7 +101,7 @@ Yuk, mau tanya apa hari ini? 😊"""}
                 st.error("Silakan refresh halaman atau cek koneksi internet.")
                 st.stop()
             
-            status.update(label="✅ Kak Maxy siap!", state="complete", expanded=False)
+            status.update(label="✅ MinMax siap!", state="complete", expanded=False)
             
         st.session_state.rag_system = rag
         st.session_state.rag_loaded = True
@@ -140,7 +140,7 @@ Yuk, mau tanya apa hari ini? 😊"""}
         prompt = st.session_state.messages[-1]["content"]
         
         with st.chat_message("assistant", avatar="🤖"):
-            with st.spinner("Kak Maxy sedang berpikir... 💭"):
+            with st.spinner("MinMax sedang berpikir... 💭"):
                 if "rag_system" not in st.session_state or st.session_state.rag_system is None:
                      answer = "⚠️ Sistem AI belum siap. Silakan refresh halaman."
                      response = {"answer": answer}
@@ -150,10 +150,11 @@ Yuk, mau tanya apa hari ini? 😊"""}
             
             st.markdown(answer)
             
-            if response.get("sources"):
-                with st.expander("📚 Sumber Referensi"):
-                    for src in response["sources"]:
-                        st.caption(f"• {src}")
+            # REFERENCE REMOVED BY USER REQUEST
+            # if response.get("sources"):
+            #     with st.expander("📚 Sumber Referensi"):
+            #         for src in response["sources"]:
+            #             st.caption(f"• {src}")
         
         st.session_state.messages.append({"role": "assistant", "content": answer})
     
