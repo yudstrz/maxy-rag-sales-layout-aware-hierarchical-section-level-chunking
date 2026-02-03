@@ -381,8 +381,30 @@ def load_rag_system():
         config = HybridRAGConfig()
         print(f"[RAG] Config loaded. BASE_PATH={config.BASE_PATH}", flush=True)
         
-        # Step 1: Load Data
+        # --- SMART CACHE INVALIDATION LOGIC ---
+        source_files = [
+            config.BOOTCAMP_DATASET, 
+            config.COMPANY_INFO, 
+            config.CURRICULUM_DATASET
+        ]
+        
+        # Check if we need to force rebuild
+        force_rebuild = False
         if os.path.exists(config.PREPROCESSED_DATA_PATH):
+            data_mtime = os.path.getmtime(config.PREPROCESSED_DATA_PATH)
+            for src in source_files:
+                if os.path.exists(src) and os.path.getmtime(src) > data_mtime:
+                    print(f"[RAG] DETECTED CHANGE IN: {os.path.basename(src)}", flush=True)
+                    force_rebuild = True
+                    break
+        
+        if force_rebuild:
+            print("[RAG] Source data is newer than cache. TRIGGERING AUTO-REBUILD...", flush=True)
+        # --------------------------------------
+
+        # Step 1: Load Data
+        # Trigger load from cache ONLY if exists AND no forced rebuild needed
+        if not force_rebuild and os.path.exists(config.PREPROCESSED_DATA_PATH):
             print("[RAG] Loading preprocessed data from cache...", flush=True)
             with open(config.PREPROCESSED_DATA_PATH, "rb") as f:
                 sections = pickle.load(f)
@@ -397,6 +419,9 @@ def load_rag_system():
             print("[RAG] Saving data cache...", flush=True)
             with open(config.PREPROCESSED_DATA_PATH, "wb") as f:
                 pickle.dump(sections, f)
+            
+            # If we rebuilt data, we MUST rebuild indices to match IDs
+            force_rebuild = True
     
         if not sections:
             return None
@@ -408,7 +433,8 @@ def load_rag_system():
         # Step 3: Build or Load BM25 Index
         section_map = {s.section_id: s for s in sections}
         
-        if os.path.exists(config.BM25_INDEX_PATH):
+        # Rebuild BM25 if forced OR if cache missing
+        if not force_rebuild and os.path.exists(config.BM25_INDEX_PATH):
             print("[RAG] Loading BM25 index from cache...", flush=True)
             with open(config.BM25_INDEX_PATH, "rb") as f:
                 abstract_bm25 = pickle.load(f)
@@ -424,7 +450,8 @@ def load_rag_system():
                 pickle.dump(abstract_bm25, f)
         
         # Step 4: Build or Load FAISS Vector Store
-        if os.path.exists(config.FAISS_INDEX_PATH):
+        # Rebuild FAISS if forced OR if cache missing
+        if not force_rebuild and os.path.exists(config.FAISS_INDEX_PATH):
             print("[RAG] Loading FAISS index from local storage...", flush=True)
             try:
                 vectorstore = FAISS.load_local(
