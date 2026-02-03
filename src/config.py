@@ -51,18 +51,20 @@ class ZaiConfig:
         return os.getenv("ZAI_API_KEY", "")
 
 class HybridRAGConfig:
-    if os.path.exists("d:/MAXY ACADEMY/Maxy-RAG"):
-        BASE_PATH = "d:/MAXY ACADEMY/Maxy-RAG/"
-    elif os.path.exists("/content/"):
-        BASE_PATH = "/content/"
-    else:
-        BASE_PATH = "./"
+    # Dynamic Project Root
+    # c:\Users\...\src\config.py -> c:\Users\...\
+    BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     BOOTCAMP_DATASET = os.path.join(BASE_PATH, "MAXY_Bootcamp_Dataset.jsonl")
     CURRICULUM_DATASET = os.path.join(BASE_PATH, "MAXY_Curriculum_Syllabus.jsonl")
     COMPANY_INFO = os.path.join(BASE_PATH, "MAXY_Company_Info.jsonl")
+    
+    FAISS_INDEX_PATH = os.path.join(BASE_PATH, "faiss_index")
+    BM25_INDEX_PATH = os.path.join(BASE_PATH, "bm25_index.pkl")
+    PREPROCESSED_DATA_PATH = os.path.join(BASE_PATH, "data_cache.pkl")
 
-    EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" # ~470MB (Best Quality)
+    # EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2" # ~80MB (Best Speed/Size)
     # Use smaller reranker for Streamlit Cloud (bge-reranker-v2-m3 is too large ~560MB)
     RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # ~80MB, much faster
 

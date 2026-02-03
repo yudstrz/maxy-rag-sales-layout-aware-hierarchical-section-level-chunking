@@ -3,6 +3,7 @@ import streamlit as st
 import json
 import hashlib
 import traceback
+import pickle
 from typing import List, Dict
 
 # External RAG libs
@@ -381,11 +382,21 @@ def load_rag_system():
         print(f"[RAG] Config loaded. BASE_PATH={config.BASE_PATH}", flush=True)
         
         # Step 1: Load Data
-        print("[RAG] Loading data...", flush=True)
-        
-        chunker = LayoutAwareChunker(config)
-        sections = chunker.process_all()
-        print(f"[RAG] Loaded {len(sections)} sections", flush=True)
+        if os.path.exists(config.PREPROCESSED_DATA_PATH):
+            print("[RAG] Loading preprocessed data from cache...", flush=True)
+            with open(config.PREPROCESSED_DATA_PATH, "rb") as f:
+                sections = pickle.load(f)
+            print(f"[RAG] Loaded {len(sections)} sections from cache.", flush=True)
+        else:
+            print("[RAG] Loading data from source files...", flush=True)
+            chunker = LayoutAwareChunker(config)
+            sections = chunker.process_all()
+            print(f"[RAG] Processed {len(sections)} sections.", flush=True)
+            
+            # Save cache
+            print("[RAG] Saving data cache...", flush=True)
+            with open(config.PREPROCESSED_DATA_PATH, "wb") as f:
+                pickle.dump(sections, f)
     
         if not sections:
             return None
@@ -394,17 +405,48 @@ def load_rag_system():
         print("[RAG] Loading embedding model...", flush=True)
         embeddings = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL)
         
-        # Step 3: Build BM25 Index
-        print("[RAG] Building BM25 index...", flush=True)
+        # Step 3: Build or Load BM25 Index
         section_map = {s.section_id: s for s in sections}
-        abstract_docs = [s.to_langchain_doc(use_abstract=True) for s in sections]
-        abstract_bm25 = BM25Retriever.from_documents(abstract_docs)
-        abstract_bm25.k = config.TOP_K_ABSTRACT_BM25
         
-        # Step 4: Build FAISS Vector Store
-        print("[RAG] Building FAISS vector store...", flush=True)
-        full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
-        vectorstore = FAISS.from_documents(full_docs, embeddings)
+        if os.path.exists(config.BM25_INDEX_PATH):
+            print("[RAG] Loading BM25 index from cache...", flush=True)
+            with open(config.BM25_INDEX_PATH, "rb") as f:
+                abstract_bm25 = pickle.load(f)
+        else:
+            print("[RAG] Building BM25 index...", flush=True)
+            abstract_docs = [s.to_langchain_doc(use_abstract=True) for s in sections]
+            abstract_bm25 = BM25Retriever.from_documents(abstract_docs)
+            abstract_bm25.k = config.TOP_K_ABSTRACT_BM25
+            
+            # Save cache
+            print("[RAG] Saving BM25 index...", flush=True)
+            with open(config.BM25_INDEX_PATH, "wb") as f:
+                pickle.dump(abstract_bm25, f)
+        
+        # Step 4: Build or Load FAISS Vector Store
+        if os.path.exists(config.FAISS_INDEX_PATH):
+            print("[RAG] Loading FAISS index from local storage...", flush=True)
+            try:
+                vectorstore = FAISS.load_local(
+                    config.FAISS_INDEX_PATH, 
+                    embeddings, 
+                    allow_dangerous_deserialization=True
+                )
+                print("[RAG] FAISS index loaded successfully!", flush=True)
+            except Exception as e:
+                print(f"[RAG] Failed to load local index: {e}. Rebuilding...", flush=True)
+                full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
+                vectorstore = FAISS.from_documents(full_docs, embeddings)
+                vectorstore.save_local(config.FAISS_INDEX_PATH)
+                print("[RAG] FAISS index rebuilt and saved!", flush=True)
+        else:
+            print("[RAG] Building FAISS vector store...", flush=True)
+            full_docs = [s.to_langchain_doc(use_abstract=False) for s in sections]
+            vectorstore = FAISS.from_documents(full_docs, embeddings)
+            
+            # Save for future use
+            print("[RAG] Saving FAISS index locally...", flush=True)
+            vectorstore.save_local(config.FAISS_INDEX_PATH)
         
         # Step 5: Load Reranker Model
         print("[RAG] Loading reranker model...", flush=True)
