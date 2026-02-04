@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Maxy_RAG_Streamlit.py
 
-Maxy Academy RAG System V3 - Cleaned & Modularized
+Maxy Academy RAG System V3 - Groq Only Version
 """
 
 import sys
@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import streamlit as st
-from src.config import get_groq_api_key, ZaiConfig
+from src.config import get_groq_api_key
 from src.ui import load_custom_css
 from src.rag_engine import load_rag_system
 
@@ -38,40 +38,34 @@ def main():
     
     st.divider()
     
-    # Check API Key
+    # Check API Key (Groq Only)
     groq_key = get_groq_api_key()
-    
-    # Validasi: Minimal satu key harus ada untuk jalan
-    groq_key = get_groq_api_key()
-    zai_key = getattr(ZaiConfig, 'get_api_key', lambda: "")()
 
-    if not groq_key and not zai_key:
-        st.warning("⚠️ Belum ada API Key yang terdeteksi. Silakan masukkan salah satu atau keduanya.")
+    if not groq_key:
+        st.warning("⚠️ Belum ada Groq API Key yang terdeteksi.")
         
         with st.form("api_key_form"):
-            st.markdown("### 🔑 Masukkan API Key")
-            st.caption("Masukkan minimal satu key. Jika keduanya diisi, sistem akan auto-switch ke Z.ai jika Groq error.")
+            st.markdown("### 🔑 Masukkan Groq API Key")
+            st.caption("Dapatkan API Key gratis di console.groq.com")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                groq_input = st.text_input("Groq API Key", type="password", placeholder="gsk_...", help="Dapatkan di console.groq.com")
-            with col2:
-                zai_input = st.text_input("Z.ai (GLM) API Key", type="password", placeholder="Key Z.ai...", help="Dapatkan di open.bigmodel.cn")
+            groq_input = st.text_input(
+                "Groq API Key", 
+                type="password", 
+                placeholder="gsk_...", 
+                help="Dapatkan di console.groq.com"
+            )
             
-            st.markdown("Belum punya API Key? [Dapatkan Groq Key](https://console.groq.com/keys) atau [Z.ai Key](https://open.bigmodel.cn/)")
+            st.markdown("[📋 Dapatkan Groq API Key](https://console.groq.com/keys)")
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
-                if groq_input or zai_input:
-                    if groq_input:
-                        st.session_state.groq_api_key = groq_input
-                    if zai_input:
-                        st.session_state.zai_api_key = zai_input
+                if groq_input:
+                    st.session_state.groq_api_key = groq_input
                     st.success("✅ API Key tersimpan!")
                     st.rerun()
                 else:
-                    st.error("❌ Masukkan setidaknya satu API Key!")
+                    st.error("❌ Masukkan Groq API Key!")
         
         st.stop()
     
@@ -149,12 +143,6 @@ Yuk, mau tanya apa hari ini? 😊"""}
                      answer = response["answer"]
             
             st.markdown(answer)
-            
-            # REFERENCE REMOVED BY USER REQUEST
-            # if response.get("sources"):
-            #     with st.expander("📚 Sumber Referensi"):
-            #         for src in response["sources"]:
-            #             st.caption(f"• {src}")
         
         st.session_state.messages.append({"role": "assistant", "content": answer})
     
@@ -205,12 +193,9 @@ Yuk, mau tanya apa hari ini? 😊"""}
         
         st.markdown("**Status:**")
         groq_key = get_groq_api_key()
-        zai_key = getattr(st.secrets, "ZAI_API_KEY", None) or os.getenv("ZAI_API_KEY")
         
         if groq_key:
             st.caption(f"✅ Groq: ...{groq_key[-8:]}")
-        elif zai_key:
-            st.caption(f"✅ Z.ai: ...{zai_key[-8:]}")
         else:
             st.caption("⚠️ API Key: Belum diset")
 

@@ -30,25 +30,7 @@ class GroqConfig:
     def get_api_key(cls):
         return get_groq_api_key()
 
-class ZaiConfig:
-    # ZhipuAI / GLM often uses specific SDK but also has OpenAI compatible endpoint
-    # Endpoint: https://open.bigmodel.cn/api/paas/v4/
-    BASE_URL = "https://open.bigmodel.cn/api/paas/v4/"
-    MODEL_LIST = [
-        "glm-4.7-flash", 
-        "glm-4.5-flash",
-    ]
 
-    @classmethod
-    def get_api_key(cls):
-        # 1. Check session_state (UI input)
-        if "zai_api_key" in st.session_state and st.session_state.zai_api_key:
-            return st.session_state.zai_api_key
-        # 2. Check Streamlit Secrets (Cloud)
-        if "ZAI_API_KEY" in st.secrets:
-            return st.secrets["ZAI_API_KEY"]
-        # 3. Check environment variable (.env)
-        return os.getenv("ZAI_API_KEY", "")
 
 class HybridRAGConfig:
     # Dynamic Project Root
