@@ -160,7 +160,7 @@ Silakan ajukan pertanyaan Anda hari ini."""
     
     # Sidebar
     with st.sidebar:
-        st.image("https://via.placeholder.com/150x50/E67E22/FFFFFF?text=MAXY", width='stretch')
+        st.image("https://placehold.co/600x200/E67E22/FFFFFF.png?text=MAXY+ACADEMY", use_container_width=True)
         
         st.markdown("### 🌐 Bahasa / Language")
         selected_lang = st.radio(
