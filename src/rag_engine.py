@@ -249,14 +249,30 @@ class HybridRAGPreloaded:
         
         return unique[:self.config.TOP_K_FINAL]
     
-    def query(self, question: str, chat_history: List[Dict] = []) -> Dict:
+    def query(self, question: str, chat_history: List[Dict] = None, language: str = "Indonesia") -> Dict:
+        if chat_history is None:
+            chat_history = []
         sections = self.retrieve(question)
         q_lower = question.lower()
         
         custom_keywords = ["custom", "by request", "sesuai kebutuhan", "khusus"]
+        if language == "English":
+            custom_keywords.extend(["custom", "by request", "tailored", "specific needs", "special"])
+
         if any(kw in q_lower for kw in custom_keywords):
-            return {
-                "answer": """Wah, keren nih kak! 🙌
+            if language == "English":
+                ans = """Wow, that's awesome! 🙌
+
+Maxy Academy is completely open to **custom programs** or **by request** training according to your company's needs.
+
+Could you tell me a little more:
+- **Which field** are you aiming for?
+- **How many people** will be participating?
+- **What is the desired duration**?
+
+👉 [Chat Admin for Custom Program Request](https://wa.me/62811355993?text=Halo%20Admin%20Maxy)"""
+            else:
+                ans = """Wah, keren nih kak! 🙌
 
 Maxy Academy memang open untuk program **custom by request** sesuai kebutuhan perusahaan kakak.
 
@@ -265,7 +281,9 @@ Boleh cerita dulu kak:
 - **Berapa orang** yang akan ikut?
 - **Durasi** yang diinginkan?
 
-👉 [Chat Admin untuk Request Program Custom](https://wa.me/62811355993?text=Halo%20Admin%20Maxy)""",
+👉 [Chat Admin untuk Request Program Custom](https://wa.me/62811355993?text=Halo%20Admin%20Maxy)"""
+            return {
+                "answer": ans,
                 "sources": []
             }
         
@@ -279,12 +297,20 @@ Boleh cerita dulu kak:
         
         # If no sections found AND no history, return fallback.
         if not sections and not history_text:
-            return {
-                "answer": """Hmm, aku belum nemuin info spesifik soal itu kak 😅
+            if language == "English":
+                fallback_ans = """Hmm, I haven't found specific info about that yet 😅
+
+But you can ask the Maxy Admin directly:
+
+👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)"""
+            else:
+                fallback_ans = """Hmm, aku belum nemuin info spesifik soal itu kak 😅
 
 Tapi kakak bisa langsung tanya ke Admin Maxy:
 
-👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)""",
+👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)"""
+            return {
+                "answer": fallback_ans,
                 "sources": []
             }
 
@@ -292,7 +318,65 @@ Tapi kakak bisa langsung tanya ke Admin Maxy:
         for i, section in enumerate(sections):
             context_text += f"[SUMBER {i+1}] {section.section_path}\n{section.full_text}\n\n"
 
-        system_prompt = """Kamu adalah 'MinMax', AI Consultant Maxy Academy yang cerdas, empatik, dan sales-oriented! 🚀
+        if language == "English":
+            system_prompt = """You are 'MinMax', Maxy Academy's Smart AI Consultant who is empathetic and sales-oriented! 🚀
+
+CORE INTELLIGENCE (THINKING PROCESS):
+1. **PRICING & PACKAGE INFO (CRITICAL):**
+   - If the user asks about "cost", "price", or "packages", you MUST state ALL available options comprehensively using bullet points.
+   - Do not hide prices. Transparency is key.
+   - Order them from Fast Track (High Value) to Regular.
+
+2. **DEEP CONTEXT ANALYSIS:**
+   - Don't just read the last chat. Understand the conversation flow.
+   - Is the user *just exploring*, *interested but hesitant* (Objection), or *ready to buy* (Closing)?
+   - Adjust your tone based on this stage.
+
+3. **USE SEMANTIC LOGIC & SALES STRATEGY:**
+   - The database contains a "Sales Strategy" (why it's pricey, why Fast Track, etc.).
+   - DO NOT ignore this! Use this logic to answer "Why" or when facing objections.
+   - Example: If a user asks "Why so expensive?", use the ROI logic from the Sales Strategy data.
+
+4. **MAXY ACADEMY BOUNDARIES:**
+   - Answer only about Maxy Academy (Programs, Career, Tech). *Implicit vs Explicit Concern*.
+   - If user says "expensive" (Explicit) -> Explain ROI & Internship Salary.
+   - If user seems hesitant or comparing (Implicit) -> Emphasize *Value* and *Career Guarantee*.
+   - **IMPORTANT:** If the user ONLY provides data/specs (e.g., "I want it for 20 people"), THAT IS NOT A PRICE COMPLAINT. Do not be defensive! Greet enthusiastically: "Wow, 20 people? Absolutely! We can arrange..."
+
+5. **HANDLING "CUSTOM PROGRAM" (B2B/CORPORATE):**
+   - When a user asks for custom (specific headcount, duration), this is a *High Value Lead*.
+   - **DO NOT** discuss price initially unless asked.
+   - **FOCUS:** Consultative. Ask for their *Goals*.
+   - "For your 20-person team, what is the main skill you want them to master in those 7 days?"
+
+PERSONALITY:
+- Address them politely (e.g., "Kak" or "Kakak" or directly).
+- Tone: Professional but friendly (like a humble senior consultant). Always reply in English.
+- Be conversational and fluent.
+
+ANSWERING RULES:
+1. **CTX (Check Context):** Always reference info from previous chats if applicable.
+2. **RECOMMENDATION:** If recommending a program, you MUST include a valid LINK from the data.
+3. **UNKNOWN:** If you don't know, direct them to the WhatsApp Admin.
+
+SALES STRATEGY (THE "CONSULTANT" MINDSET):
+- Don't be pushy.
+- Be like a "doctor" (diagnose needs -> prescribe solutions).
+- If they complain about price, *reframe* it as an investment.
+
+RECOMMENDATION FORMAT (If relevant):
+**Program Recommendations:**
+1. **Program Name** (Copy exactly from data)
+   - Main benefit
+   - 🔗 **Link:** [Copy EXACT URL from 'Link Program', DO NOT ALTER OR SHORTEN]
+
+ANTI-HALLUCINATION RULES:
+1. DO NOT invent program names that don't exist.
+2. DO NOT change/shorten links.
+3. Quote the program name according to "Program: ..." in the data chunk.
+"""
+        else:
+            system_prompt = """Kamu adalah 'MinMax', AI Consultant Maxy Academy yang cerdas, empatik, dan sales-oriented! 🚀
 
 CORE INTELLIGENCE (CARA BERPIKIR):
 1. **INFORMASI HARGA & PAKET (CRITICAL):**
@@ -324,7 +408,7 @@ CORE INTELLIGENCE (CARA BERPIKIR):
 
 PERSONALITY:
 - Panggil "Kak" atau "Kakak".
-- Tone: Professional tapi asik (seperti konsultan senior yang humble).
+- Tone: Professional tapi asik (seperti konsultan senior yang humble). Selalu balas dalam Bahasa Indonesia.
 - Jangan kaku, gunakan bahasa yang mengalir.
 
 ATURAN MENJAWAB:
@@ -368,10 +452,13 @@ Jawaban MinMax:"""
         answer = self.llm.generate(full_prompt, system_prompt)
         
         if not answer:
-            answer = "⚠️ Maaf, terjadi kesalahan pada koneksi AI. Pastikan API Key sudah benar."
+            if language == "English":
+                answer = "⚠️ Sorry, there was an error with the AI connection. Please ensure the API Key is correct."
+            else:
+                answer = "⚠️ Maaf, terjadi kesalahan pada koneksi AI. Pastikan API Key sudah benar."
 
         wa_link = "\n\n👉 [Chat Admin via WhatsApp](https://wa.me/62811355993)"
-        high_intent = ["daftar", "biaya", "bayar", "gabung", "join", "info", "tanya", "program", "bootcamp"]
+        high_intent = ["daftar", "biaya", "bayar", "gabung", "join", "info", "tanya", "program", "bootcamp", "register", "cost", "enroll"]
         if any(kw in q_lower for kw in high_intent) and "wa.me" not in answer:
             answer += wa_link
         
