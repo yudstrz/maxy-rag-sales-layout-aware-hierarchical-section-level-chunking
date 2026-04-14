@@ -29,7 +29,7 @@ class GroqLLM:
     def generate(self, prompt: str, system_prompt: str = "") -> Optional[str]:
         """Generate response using AI API."""
         if not self.client:
-            return "⚠️ API Key belum diset. Silakan masukkan API Key terlebih dahulu."
+            return "API Key belum diset. Silakan masukkan API Key terlebih dahulu."
         
         last_error = ""
         provider = "OPENAI" if self.is_openai else "GROQ"
@@ -52,4 +52,4 @@ class GroqLLM:
                 print(f"[{provider}] {last_error}", flush=True)
                 continue
         
-        return f"⚠️ Gagal terhubung ke API. Detail: {last_error}"
+        return f"Gagal terhubung ke API. Detail: {last_error}"

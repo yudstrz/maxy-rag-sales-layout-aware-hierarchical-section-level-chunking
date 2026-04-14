@@ -20,7 +20,6 @@ from src.rag_engine import load_rag_system
 # Page Config
 st.set_page_config(
     page_title="MinMax - AI Assistant",
-    page_icon="🚀",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
@@ -31,7 +30,7 @@ def main():
     # Header
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.title("🚀 MinMax")
+        st.title("MinMax")
         st.caption("AI Consultant - Maxy Academy")
     with col2:
         st.markdown('<div class="status-badge"><div class="status-dot"></div>Online</div>', unsafe_allow_html=True)
@@ -42,36 +41,36 @@ def main():
     api_key = get_api_key()
 
     if not api_key:
-        st.error("⚠️ API Key tidak ditemukan. Pastikan `OPENAI_API_KEY` atau `GROQ_API_KEY` telah diset di file `.env`.", icon="❌")
+        st.error("API Key tidak ditemukan. Pastikan `OPENAI_API_KEY` atau `GROQ_API_KEY` telah diset di file `.env`.")
         st.stop()
     
     # Initialize messages
     if "messages" not in st.session_state:
         st.session_state.messages = [
-            {"role": "assistant", "content": """**Halo kak! 👋 Selamat datang di Maxy Academy AI Assistant!**
+            {"role": "assistant", "content": """**Halo! Selamat datang di Maxy Academy AI Assistant.**
 
-Aku **MinMax**, siap bantu kakak menemukan program karir impian atau jawab pertanyaan seputar Maxy Academy. 🚀
+Saya **MinMax**, siap membantu Anda menemukan program karir impian atau menjawab pertanyaan seputar Maxy Academy.
 
-Kakak bisa tanya apa saja, misalnya:
+Anda bisa bertanya apa saja, misalnya:
 - "Apa itu program Fast Track?"
-- "Ada bootcamp Data Science ga?"
-- "Cara daftar magang gimana kak?"
+- "Apakah ada bootcamp Data Science?"
+- "Bagaimana cara mendaftar magang?"
 
-Yuk, mau tanya apa hari ini? 😊"""}
+Silakan ajukan pertanyaan Anda hari ini."""}
         ]
     
     # Load RAG
     if "rag_loaded" not in st.session_state:
-        with st.status("🔄 Mempersiapkan MinMax...", expanded=True) as status:
-            st.write("📂 Memuat data & core system...")
+        with st.status("Mempersiapkan MinMax...", expanded=True) as status:
+            st.write("Memuat data & core system...")
             rag = load_rag_system()
             
             if rag is None:
-                status.update(label="❌ Gagal memuat sistem AI", state="error", expanded=True)
+                status.update(label="Gagal memuat sistem AI", state="error", expanded=True)
                 st.error("Silakan refresh halaman atau cek koneksi internet.")
                 st.stop()
             
-            status.update(label="✅ MinMax siap!", state="complete", expanded=False)
+            status.update(label="MinMax siap!", state="complete", expanded=False)
             
         st.session_state.rag_system = rag
         st.session_state.rag_loaded = True
@@ -79,12 +78,12 @@ Yuk, mau tanya apa hari ini? 😊"""}
     
     # Display Messages
     for message in st.session_state.messages:
-        with st.chat_message(message["role"], avatar="🤖" if message["role"] == "assistant" else "👤"):
+        with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
     # Quick Actions
     if len(st.session_state.messages) <= 2:
-        st.markdown("**💡 Pertanyaan Populer:**")
+        st.markdown("**Pertanyaan Populer:**")
         cols = st.columns(2)
         quick_qs = [
             "Info paket Fast Track",
@@ -109,10 +108,10 @@ Yuk, mau tanya apa hari ini? 😊"""}
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
         prompt = st.session_state.messages[-1]["content"]
         
-        with st.chat_message("assistant", avatar="🤖"):
-            with st.spinner("MinMax sedang berpikir... 💭"):
+        with st.chat_message("assistant"):
+            with st.spinner("MinMax sedang memproses..."):
                 if "rag_system" not in st.session_state or st.session_state.rag_system is None:
-                     answer = "⚠️ Sistem AI belum siap. Silakan refresh halaman."
+                     answer = "Sistem AI belum siap. Silakan refresh halaman."
                      response = {"answer": answer}
                 else:
                      response = st.session_state.rag_system.query(prompt, st.session_state.messages[:-1])
@@ -125,7 +124,7 @@ Yuk, mau tanya apa hari ini? 😊"""}
     # Sidebar
     with st.sidebar:
         st.image("https://via.placeholder.com/150x50/E67E22/FFFFFF?text=MAXY", width='stretch')
-        st.markdown("### 🎯 Contoh Pertanyaan")
+        st.markdown("### Contoh Pertanyaan")
         
         examples = [
             "Info paket Fast Track",
@@ -143,7 +142,7 @@ Yuk, mau tanya apa hari ini? 😊"""}
         
         st.divider()
         
-        if st.button("🗑️ Hapus Chat", width='stretch'):
+        if st.button("Hapus Obrolan", width='stretch'):
             st.session_state.messages = [st.session_state.messages[0]] # Reset to welcome
             st.rerun()
         
@@ -154,9 +153,9 @@ Yuk, mau tanya apa hari ini? 😊"""}
         
         if api_key_val:
             provider = "OpenAI" if api_key_val.startswith("sk-") else "Groq"
-            st.caption(f"✅ {provider}: ...{api_key_val[-8:]}")
+            st.caption(f"Koneksi Aktif: {provider}")
         else:
-            st.caption("⚠️ API Key: Belum diset")
+            st.caption("Status: API Key belum diset")
 
         st.divider()
         st.caption("Powered by **OpenAI & Groq**")
