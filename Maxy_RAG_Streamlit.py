@@ -77,7 +77,7 @@ Silakan ajukan pertanyaan Anda hari ini."""
         ]
     
     # Load RAG
-    if "rag_loaded" not in st.session_state:
+    if "rag_loaded_v2" not in st.session_state:
         status_label = "Preparing MinMax..." if st.session_state.language == "English" else "Mempersiapkan MinMax..."
         with st.status(status_label, expanded=True) as status:
             st.write("Loading data & core system..." if st.session_state.language == "English" else "Memuat data & core system...")
@@ -96,7 +96,7 @@ Silakan ajukan pertanyaan Anda hari ini."""
             status.update(label=ok_label, state="complete", expanded=False)
             
         st.session_state.rag_system = rag
-        st.session_state.rag_loaded = True
+        st.session_state.rag_loaded_v2 = True
         st.rerun()
     
     # Display Messages

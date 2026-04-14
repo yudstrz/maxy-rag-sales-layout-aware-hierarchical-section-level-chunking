@@ -467,7 +467,7 @@ Jawaban MinMax:"""
 @st.cache_resource
 def load_rag_system():
     """Load RAG system with progress tracking."""
-    print("[RAG] Starting load_rag_system...", flush=True)
+    print("[RAG] Starting load_rag_system (v2: multi-lang support)...", flush=True)
     
     try:
         print("[RAG] Importing LangChain components...", flush=True)
