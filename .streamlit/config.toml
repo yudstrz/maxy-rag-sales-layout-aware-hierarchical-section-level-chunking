@@ -1,3 +1,8 @@
 [server]
 enableCORS = false
 enableXsrfProtection = false
+headless = true
+
+[browser]
+gatherUsageStats = false
+serverCookieSecret = "maxy-minmax-secret-key-2026"
