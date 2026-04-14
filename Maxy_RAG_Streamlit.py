@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Maxy_RAG_Streamlit.py
 
-Maxy Academy RAG System V3 - Groq Only Version
+Maxy Academy RAG System V3 - Universal Version
 """
 
 import sys
@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import streamlit as st
-from src.config import get_groq_api_key
+from src.config import get_api_key
 from src.ui import load_custom_css
 from src.rag_engine import load_rag_system
 
@@ -38,34 +38,32 @@ def main():
     
     st.divider()
     
-    # Check API Key (Groq Only)
-    groq_key = get_groq_api_key()
+    # Check API Key
+    api_key = get_api_key()
 
-    if not groq_key:
-        st.warning("⚠️ Belum ada Groq API Key yang terdeteksi.")
+    if not api_key:
+        st.info("👋 Selamat datang! Silakan masukkan API Key (OpenAI / Groq) untuk memulai.", icon="ℹ️")
         
         with st.form("api_key_form"):
-            st.markdown("### 🔑 Masukkan Groq API Key")
-            st.caption("Dapatkan API Key gratis di console.groq.com")
+            st.markdown("### 🔑 Masukkan API Key")
+            st.caption("Mendukung OpenAI (sk-...) atau Groq (gsk-...)")
             
-            groq_input = st.text_input(
-                "Groq API Key", 
+            key_input = st.text_input(
+                "API Key", 
                 type="password", 
-                placeholder="gsk_...", 
-                help="Dapatkan di console.groq.com"
+                placeholder="sk-... atau gsk_...", 
+                help="Dapatkan di platform.openai.com atau console.groq.com"
             )
-            
-            st.markdown("[📋 Dapatkan Groq API Key](https://console.groq.com/keys)")
             
             submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
             
             if submit:
-                if groq_input:
-                    st.session_state.groq_api_key = groq_input
-                    st.success("✅ API Key tersimpan!")
+                if key_input:
+                    st.session_state.api_key = key_input
+                    st.toast("✅ API Key tersimpan!", icon="✅")
                     st.rerun()
                 else:
-                    st.error("❌ Masukkan Groq API Key!")
+                    st.toast("❌ Masukkan API Key!", icon="❌")
         
         st.stop()
     
@@ -174,33 +172,34 @@ Yuk, mau tanya apa hari ini? 😊"""}
         st.divider()
         
         st.markdown("### ⚙️ Settings")
-        groq_input = st.text_input(
-            "Groq API Key",
-            value=st.session_state.get("groq_api_key", ""),
+        key_input = st.text_input(
+            "API Key (OpenAI / Groq)",
+            value=st.session_state.get("api_key", ""),
             type="password",
-            help="API Key dari Groq",
-            key="groq_key_input_field"
+            help="API Key dari OpenAI atau Groq",
+            key="api_key_input_field"
         )
         
         if st.button("💾 Simpan API Key", use_container_width=True):
-            st.session_state.groq_api_key = groq_input
+            st.session_state.api_key = key_input
             if "rag_loaded" in st.session_state:
                 del st.session_state.rag_loaded
             if "rag_system" in st.session_state:
                 del st.session_state.rag_system
-            st.success("API Key tersimpan! Reload sistem...")
+            st.toast("✅ API Key tersimpan! Memperbarui sistem...", icon="🔄")
             st.rerun()
         
         st.markdown("**Status:**")
-        groq_key = get_groq_api_key()
+        api_key_val = get_api_key()
         
-        if groq_key:
-            st.caption(f"✅ Groq: ...{groq_key[-8:]}")
+        if api_key_val:
+            provider = "OpenAI" if api_key_val.startswith("sk-") else "Groq"
+            st.caption(f"✅ {provider}: ...{api_key_val[-8:]}")
         else:
             st.caption("⚠️ API Key: Belum diset")
 
         st.divider()
-        st.caption("Powered by **Groq LPU**")
+        st.caption("Powered by **OpenAI & Groq**")
         st.caption("© 2026 Maxy Academy")
 
 if __name__ == "__main__":
