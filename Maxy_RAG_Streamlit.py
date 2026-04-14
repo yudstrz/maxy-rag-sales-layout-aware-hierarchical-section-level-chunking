@@ -42,29 +42,7 @@ def main():
     api_key = get_api_key()
 
     if not api_key:
-        st.info("👋 Selamat datang! Silakan masukkan API Key (OpenAI / Groq) untuk memulai.", icon="ℹ️")
-        
-        with st.form("api_key_form"):
-            st.markdown("### 🔑 Masukkan API Key")
-            st.caption("Mendukung OpenAI (sk-...) atau Groq (gsk-...)")
-            
-            key_input = st.text_input(
-                "API Key", 
-                type="password", 
-                placeholder="sk-... atau gsk_...", 
-                help="Dapatkan di platform.openai.com atau console.groq.com"
-            )
-            
-            submit = st.form_submit_button("✅ Simpan & Mulai", use_container_width=True)
-            
-            if submit:
-                if key_input:
-                    st.session_state.api_key = key_input
-                    st.toast("✅ API Key tersimpan!", icon="✅")
-                    st.rerun()
-                else:
-                    st.toast("❌ Masukkan API Key!", icon="❌")
-        
+        st.error("⚠️ API Key tidak ditemukan. Pastikan `OPENAI_API_KEY` atau `GROQ_API_KEY` telah diset di file `.env`.", icon="❌")
         st.stop()
     
     # Initialize messages
@@ -170,24 +148,6 @@ Yuk, mau tanya apa hari ini? 😊"""}
             st.rerun()
         
         st.divider()
-        
-        st.markdown("### ⚙️ Settings")
-        key_input = st.text_input(
-            "API Key (OpenAI / Groq)",
-            value=st.session_state.get("api_key", ""),
-            type="password",
-            help="API Key dari OpenAI atau Groq",
-            key="api_key_input_field"
-        )
-        
-        if st.button("💾 Simpan API Key", use_container_width=True):
-            st.session_state.api_key = key_input
-            if "rag_loaded" in st.session_state:
-                del st.session_state.rag_loaded
-            if "rag_system" in st.session_state:
-                del st.session_state.rag_system
-            st.toast("✅ API Key tersimpan! Memperbarui sistem...", icon="🔄")
-            st.rerun()
         
         st.markdown("**Status:**")
         api_key_val = get_api_key()
