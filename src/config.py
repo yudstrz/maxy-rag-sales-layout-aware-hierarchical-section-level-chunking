@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -9,26 +8,22 @@ def get_api_key():
     # 1. Check session_state (UI input)
     if "api_key" in st.session_state and st.session_state.api_key:
         return st.session_state.api_key
-    if "groq_api_key" in st.session_state and st.session_state.groq_api_key:
-        return st.session_state.groq_api_key
         
     # 2. Check Streamlit Secrets (Cloud)
     try:
         if "API_KEY" in st.secrets: return st.secrets["API_KEY"]
         if "OPENAI_API_KEY" in st.secrets: return st.secrets["OPENAI_API_KEY"]
-        if "GROQ_API_KEY" in st.secrets: return st.secrets["GROQ_API_KEY"]
     except:
         pass
         
     # 3. Check environment variable (.env)
-    return os.getenv("OPENAI_API_KEY", "") or os.getenv("GROQ_API_KEY", "") or os.getenv("API_KEY", "")
+    return os.getenv("OPENAI_API_KEY", "") or os.getenv("API_KEY", "")
 
-class GroqConfig:
-    BASE_URL = "https://api.groq.com/openai/v1"
+class LLMConfig:
     MODEL_LIST = [
-        "llama-3.3-70b-versatile",
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it",
+        "gpt-4o-mini",
+        "gpt-4o",
+        "gpt-3.5-turbo",
     ]
     
     @classmethod

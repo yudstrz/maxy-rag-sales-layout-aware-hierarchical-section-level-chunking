@@ -41,7 +41,7 @@ def main():
     api_key = get_api_key()
 
     if not api_key:
-        st.error("API Key tidak ditemukan. Pastikan `OPENAI_API_KEY` atau `GROQ_API_KEY` telah diset di file `.env`.")
+        st.error("API Key tidak ditemukan. Pastikan `OPENAI_API_KEY` telah diset di file `.env`.")
         st.stop()
     
     # Initialize messages
@@ -152,13 +152,12 @@ Silakan ajukan pertanyaan Anda hari ini."""}
         api_key_val = get_api_key()
         
         if api_key_val:
-            provider = "OpenAI" if api_key_val.startswith("sk-") else "Groq"
-            st.caption(f"Koneksi Aktif: {provider}")
+            st.caption(f"Koneksi Aktif: OpenAI")
         else:
             st.caption("Status: API Key belum diset")
 
         st.divider()
-        st.caption("Powered by **OpenAI & Groq**")
+        st.caption("Powered by **OpenAI**")
         st.caption("© 2026 Maxy Academy")
 
 if __name__ == "__main__":

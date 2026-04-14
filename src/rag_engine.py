@@ -13,9 +13,9 @@ from langchain_community.retrievers import BM25Retriever
 from sentence_transformers import CrossEncoder
 
 # Local imports
-from src.config import HybridRAGConfig, GroqConfig
+from src.config import HybridRAGConfig, LLMConfig
 from src.models import SectionChunk
-from src.llm import GroqLLM
+from src.llm import OpenAILLM
 
 # ==========================================
 # Layout-Aware Chunker
@@ -490,8 +490,8 @@ def load_rag_system():
         reranker = CrossEncoder(config.RERANKER_MODEL)
         
         # Step 6: Initialize LLM
-        print("[RAG] Initializing Groq LLM...", flush=True)
-        llm = GroqLLM(GroqConfig.get_api_key())
+        print("[RAG] Initializing OpenAI LLM...", flush=True)
+        llm = OpenAILLM(LLMConfig.get_api_key())
         
         # Create RAG object with pre-loaded components
         rag = HybridRAGPreloaded(
