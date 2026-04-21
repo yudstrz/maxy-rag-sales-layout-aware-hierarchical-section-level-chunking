@@ -17,9 +17,11 @@ class OpenAILLM:
         if self.api_key:
             self.client = openai.OpenAI(api_key=self.api_key)
 
-    def generate(self, prompt: str, system_prompt: str = "") -> Optional[str]:
+    def generate(self, prompt: str, system_prompt: str = "", language: str = "Indonesia") -> Optional[str]:
         """Generate response using AI API."""
         if not self.client:
+            if language == "English":
+                return "API Key not set. Please enter the API Key first."
             return "API Key belum diset. Silakan masukkan API Key terlebih dahulu."
         
         last_error = ""
@@ -42,4 +44,6 @@ class OpenAILLM:
                 print(f"[OPENAI] {last_error}", flush=True)
                 continue
         
+        if language == "English":
+             return f"Failed to connect to API. Details: {last_error}"
         return f"Gagal terhubung ke API. Detail: {last_error}"

@@ -449,7 +449,7 @@ INSTRUKSI KHUSUS UNTUK PESAN INI:
 
 Jawaban MinMax:"""
 
-        answer = self.llm.generate(full_prompt, system_prompt)
+        answer = self.llm.generate(full_prompt, system_prompt, language=language)
         
         if not answer:
             if language == "English":
